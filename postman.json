@@ -1,0 +1,106 @@
+{
+  "info": {
+    "name": "FeedSystem User API",
+    "_postman_id": "d5b2888b-1a7d-4c38-9f6b-13ab3e8ffb51",
+    "description": "Basic user endpoints for feedsystem_video_go",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"pass123\"\n}"
+        },
+        "url": {
+          "raw": "{{host}}/user/register",
+          "host": ["{{host}}"],
+          "path": ["user", "register"]
+        }
+      }
+    },
+    {
+      "name": "Rename User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1,\n  \"new_username\": \"alice_new\"\n}"
+        },
+        "url": {
+          "raw": "{{host}}/user/rename",
+          "host": ["{{host}}"],
+          "path": ["user", "rename"]
+        }
+      }
+    },
+    {
+      "name": "Change Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1,\n  \"new_password\": \"newpass456\"\n}"
+        },
+        "url": {
+          "raw": "{{host}}/user/changePassword",
+          "host": ["{{host}}"],
+          "path": ["user", "changePassword"]
+        }
+      }
+    },
+    {
+      "name": "Find User By ID",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{host}}/user/findByID",
+          "host": ["{{host}}"],
+          "path": ["user", "findByID"]
+        }
+      }
+    },
+    {
+      "name": "Find User By Username",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"alice_new\"\n}"
+        },
+        "url": {
+          "raw": "{{host}}/user/findByUsername",
+          "host": ["{{host}}"],
+          "path": ["user", "findByUsername"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "host",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
