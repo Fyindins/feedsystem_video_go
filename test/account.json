@@ -1,13 +1,13 @@
 {
   "info": {
-    "name": "FeedSystem User API",
+    "name": "FeedSystem Account API",
     "_postman_id": "d5b2888b-1a7d-4c38-9f6b-13ab3e8ffb51",
     "description": "Basic user endpoints for feedsystem_video_go",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Register User",
+      "name": "Register Account",
       "request": {
         "method": "POST",
         "header": [
@@ -18,14 +18,14 @@
           "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"pass123\"\n}"
         },
         "url": {
-          "raw": "{{host}}/user/register",
+          "raw": "{{host}}/account/register",
           "host": ["{{host}}"],
-          "path": ["user", "register"]
+          "path": ["account", "register"]
         }
       }
     },
     {
-      "name": "Rename User",
+      "name": "Rename Account",
       "request": {
         "method": "POST",
         "header": [
@@ -36,9 +36,9 @@
           "raw": "{\n  \"id\": 1,\n  \"new_username\": \"alice_new\"\n}"
         },
         "url": {
-          "raw": "{{host}}/user/rename",
+          "raw": "{{host}}/account/rename",
           "host": ["{{host}}"],
-          "path": ["user", "rename"]
+          "path": ["account", "rename"]
         }
       }
     },
@@ -51,17 +51,17 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": 1,\n  \"new_password\": \"newpass456\"\n}"
+          "raw": "{\n  \"username\": \"alice\",\n  \"old_password\": \"pass123\",\n  \"new_password\": \"newpass456\"\n}"
         },
         "url": {
-          "raw": "{{host}}/user/changePassword",
+          "raw": "{{host}}/account/changePassword",
           "host": ["{{host}}"],
-          "path": ["user", "changePassword"]
+          "path": ["account", "changePassword"]
         }
       }
     },
     {
-      "name": "Find User By ID",
+      "name": "Find Account By ID",
       "request": {
         "method": "POST",
         "header": [
@@ -72,14 +72,14 @@
           "raw": "{\n  \"id\": 1\n}"
         },
         "url": {
-          "raw": "{{host}}/user/findByID",
+          "raw": "{{host}}/account/findByID",
           "host": ["{{host}}"],
-          "path": ["user", "findByID"]
+          "path": ["account", "findByID"]
         }
       }
     },
     {
-      "name": "Find User By Username",
+      "name": "Find Account By Username",
       "request": {
         "method": "POST",
         "header": [
@@ -90,9 +90,9 @@
           "raw": "{\n  \"username\": \"alice_new\"\n}"
         },
         "url": {
-          "raw": "{{host}}/user/findByUsername",
+          "raw": "{{host}}/account/findByUsername",
           "host": ["{{host}}"],
-          "path": ["user", "findByUsername"]
+          "path": ["account", "findByUsername"]
         }
       }
     }
