@@ -2,8 +2,8 @@ package main
 
 import (
 	"feedsystem_video_go/internal/config"
-	"feedsystem_video_go/internal/database"
-	"feedsystem_video_go/internal/router"
+	"feedsystem_video_go/internal/db"
+	apphttp "feedsystem_video_go/internal/http"
 	"log"
 )
 
@@ -14,19 +14,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+
 	// Connect database
 	log.Printf("Database config: %v", cfg.Database)
-
-	db, err := database.NewDB(cfg.Database)
+	sqlDB, err := db.NewDB(cfg.Database)
 	if err != nil {
 		log.Fatalf("Failed to connect database: %v", err)
 	}
-	if err := database.AutoMigrate(db); err != nil {
+	if err := db.AutoMigrate(sqlDB); err != nil {
 		log.Fatalf("Failed to auto migrate database: %v", err)
 	}
-	defer database.CloseDB(db)
+	defer db.CloseDB(sqlDB)
+
 	// Set router
-	r := router.SetRouter(db)
+	r := apphttp.SetRouter(sqlDB)
 	log.Printf("Server is running on port %s", cfg.Server.Port)
 	if err := r.Run(":" + cfg.Server.Port); err != nil {
 		log.Fatalf("Failed to run server: %v", err)

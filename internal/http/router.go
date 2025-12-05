@@ -1,9 +1,7 @@
-package router
+package http
 
 import (
-	"feedsystem_video_go/internal/handler"
-	"feedsystem_video_go/internal/repository"
-	"feedsystem_video_go/internal/service"
+	"feedsystem_video_go/internal/account"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -12,9 +10,9 @@ import (
 func SetRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
-	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepository)
-	userHandler := handler.NewUserHandler(userService)
+	userRepository := account.NewUserRepository(db)
+	userService := account.NewUserService(userRepository)
+	userHandler := NewUserHandler(userService)
 	userGroup := r.Group("/user")
 	{
 		userGroup.POST("/register", userHandler.CreateUser)

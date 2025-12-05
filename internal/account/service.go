@@ -1,19 +1,14 @@
-package service
-
-import (
-	"feedsystem_video_go/internal/model"
-	"feedsystem_video_go/internal/repository"
-)
+package account
 
 type UserService struct {
-	userRepository *repository.UserRepository
+	userRepository *UserRepository
 }
 
-func NewUserService(userRepository *repository.UserRepository) *UserService {
+func NewUserService(userRepository *UserRepository) *UserService {
 	return &UserService{userRepository: userRepository}
 }
 
-func (us *UserService) CreateUser(user *model.User) error {
+func (us *UserService) CreateUser(user *User) error {
 	if err := us.userRepository.CreateUser(user); err != nil {
 		return err
 	}
@@ -34,7 +29,7 @@ func (us *UserService) ChangePassword(id uint, newPassword string) error {
 	return nil
 }
 
-func (us *UserService) FindByID(id uint) (*model.User, error) {
+func (us *UserService) FindByID(id uint) (*User, error) {
 	if user, err := us.userRepository.FindByID(id); err != nil {
 		return nil, err
 	} else {
@@ -42,7 +37,7 @@ func (us *UserService) FindByID(id uint) (*model.User, error) {
 	}
 }
 
-func (us *UserService) FindByUsername(username string) (*model.User, error) {
+func (us *UserService) FindByUsername(username string) (*User, error) {
 	if user, err := us.userRepository.FindByUsername(username); err != nil {
 		return nil, err
 	} else {

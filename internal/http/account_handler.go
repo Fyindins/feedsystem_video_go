@@ -1,27 +1,67 @@
-package handler
+package account
 
 import (
-	"feedsystem_video_go/internal/api"
-	"feedsystem_video_go/internal/model"
-	"feedsystem_video_go/internal/service"
+	"feedsystem_video_go/internal/account"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	userService *service.UserService
+	userService *account.UserService
 }
 
-func NewUserHandler(userService *service.UserService) *UserHandler {
+type CreateUserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type CreateUserResponse struct {
+}
+
+type RenameByIDRequest struct {
+	ID          uint   `json:"id"`
+	NewUsername string `json:"new_username"`
+}
+
+type RenameByIDResponse struct {
+}
+
+type FindByIDRequest struct {
+	ID uint `json:"id"`
+}
+
+type FindByIDResponse struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+}
+
+type FindByUsernameRequest struct {
+	Username string `json:"username"`
+}
+
+type FindByUsernameResponse struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+}
+
+type ChangePasswordRequest struct {
+	ID          uint   `json:"id"`
+	NewPassword string `json:"new_password"`
+}
+
+type ChangePasswordResponse struct {
+}
+
+func NewUserHandler(userService *account.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var req api.CreateUserRequest
+	var req CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.userService.CreateUser(&model.User{
+	if err := h.userService.CreateUser(&account.User{
 		Username: req.Username,
 		Password: req.Password,
 	}); err != nil {
@@ -32,7 +72,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 func (h *UserHandler) RenameByID(c *gin.Context) {
-	var req api.RenameByIDRequest
+	var req RenameByIDRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -45,7 +85,7 @@ func (h *UserHandler) RenameByID(c *gin.Context) {
 }
 
 func (h *UserHandler) ChangePassword(c *gin.Context) {
-	var req api.ChangePasswordRequest
+	var req ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -58,7 +98,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 }
 
 func (h *UserHandler) FindByID(c *gin.Context) {
-	var req api.FindByIDRequest
+	var req FindByIDRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -72,7 +112,7 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 }
 
 func (h *UserHandler) FindByUsername(c *gin.Context) {
-	var req api.FindByUsernameRequest
+	var req FindByUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return

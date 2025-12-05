@@ -1,8 +1,6 @@
-package repository
+package account
 
 import (
-	"feedsystem_video_go/internal/model"
-
 	"gorm.io/gorm"
 )
 
@@ -14,7 +12,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (ur *UserRepository) CreateUser(user *model.User) error {
+func (ur *UserRepository) CreateUser(user *User) error {
 	if err := ur.db.Create(user).Error; err != nil {
 		return err
 	}
@@ -22,29 +20,29 @@ func (ur *UserRepository) CreateUser(user *model.User) error {
 }
 
 func (ur *UserRepository) RenameByID(id uint, newUsername string) error {
-	if err := ur.db.Model(&model.User{}).Where("id = ?", id).Update("username", newUsername).Error; err != nil {
+	if err := ur.db.Model(&User{}).Where("id = ?", id).Update("username", newUsername).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (ur *UserRepository) ChangePassword(id uint, newPassword string) error {
-	if err := ur.db.Model(&model.User{}).Where("id = ?", id).Update("password", newPassword).Error; err != nil {
+	if err := ur.db.Model(&User{}).Where("id = ?", id).Update("password", newPassword).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ur *UserRepository) FindByID(id uint) (*model.User, error) {
-	var user model.User
+func (ur *UserRepository) FindByID(id uint) (*User, error) {
+	var user User
 	if err := ur.db.First(&user, id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func (ur *UserRepository) FindByUsername(username string) (*model.User, error) {
-	var user model.User
+func (ur *UserRepository) FindByUsername(username string) (*User, error) {
+	var user User
 	if err := ur.db.Where("username = ?", username).First(&user).Error; err != nil {
 		return nil, err
 	}
