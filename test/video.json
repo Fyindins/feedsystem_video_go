@@ -7,34 +7,6 @@
   },
   "item": [
     {
-      "name": "List Latest Videos",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"latest videos fetched\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": { "mode": "raw", "raw": "{}" },
-        "url": {
-          "raw": "{{host}}/video/listLatest",
-          "host": ["{{host}}"],
-          "path": ["video", "listLatest"]
-        }
-      }
-    },
-    {
       "name": "List Videos By Author ID",
       "event": [
         {
