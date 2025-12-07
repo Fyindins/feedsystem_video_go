@@ -24,7 +24,7 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 		accountGroup.POST("/findByUsername", accountHandler.FindByUsername)
 	}
 	protectedAccountGroup := accountGroup.Group("")
-	protectedAccountGroup.Use(middleware.JWTAuth())
+	protectedAccountGroup.Use(middleware.JWTAuth(accountRepository))
 	{
 		protectedAccountGroup.POST("/logout", accountHandler.Logout)
 		protectedAccountGroup.POST("/rename", accountHandler.RenameByID)
@@ -40,7 +40,7 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 		videoGroup.POST("/getDetail", videoHandler.GetDetail)
 	}
 	protectedVideoGroup := videoGroup.Group("")
-	protectedVideoGroup.Use(middleware.JWTAuth())
+	protectedVideoGroup.Use(middleware.JWTAuth(accountRepository))
 	{
 		protectedVideoGroup.POST("/publish", videoHandler.PublishVideo)
 	}

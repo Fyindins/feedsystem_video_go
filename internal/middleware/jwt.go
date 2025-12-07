@@ -7,11 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"feedsystem_video_go/internal/account"
 	"feedsystem_video_go/internal/auth"
 )
 
-// JWTAuth check jwt token
-func JWTAuth() gin.HandlerFunc {
+// JWTAuth check jwt token and ensure it matches the currently stored token.
+func JWTAuth(accountRepo *account.AccountRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -33,7 +34,13 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("account_id", claims.AccountID)
+		accountInfo, err := accountRepo.FindByID(claims.AccountID)
+		if err != nil || accountInfo.Token == "" || accountInfo.Token != tokenString {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token has been revoked"})
+			return
+		}
+
+		c.Set("accountID", claims.AccountID)
 		c.Set("username", claims.Username)
 
 		c.Next()
