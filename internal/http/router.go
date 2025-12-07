@@ -3,6 +3,7 @@ package http
 import (
 	"feedsystem_video_go/internal/account"
 	"feedsystem_video_go/internal/middleware"
+	"feedsystem_video_go/internal/video"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -10,7 +11,7 @@ import (
 
 func SetRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
-
+	// account
 	accountRepository := account.NewAccountRepository(db)
 	accountService := account.NewAccountService(accountRepository)
 	accountHandler := NewAccountHandler(accountService)
@@ -27,6 +28,21 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 	{
 		protectedAccountGroup.POST("/logout", accountHandler.Logout)
 		protectedAccountGroup.POST("/rename", accountHandler.RenameByID)
+	}
+	// video
+	videoRepository := video.NewVideoRepository(db)
+	videoService := video.NewVideoService(videoRepository)
+	videoHandler := NewVideoHandler(videoService)
+	videoGroup := r.Group("/video")
+	{
+		videoGroup.POST("/listByAuthorID", videoHandler.ListByAuthorID)
+		videoGroup.POST("/listLatest", videoHandler.ListLatest)
+		videoGroup.POST("/getDetail", videoHandler.GetDetail)
+	}
+	protectedVideoGroup := videoGroup.Group("")
+	protectedVideoGroup.Use(middleware.JWTAuth())
+	{
+		protectedVideoGroup.POST("/publish", videoHandler.PublishVideo)
 	}
 
 	return r
