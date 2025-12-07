@@ -36,7 +36,6 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 	videoGroup := r.Group("/video")
 	{
 		videoGroup.POST("/listByAuthorID", videoHandler.ListByAuthorID)
-		videoGroup.POST("/listLatest", videoHandler.ListLatest)
 		videoGroup.POST("/getDetail", videoHandler.GetDetail)
 	}
 	protectedVideoGroup := videoGroup.Group("")

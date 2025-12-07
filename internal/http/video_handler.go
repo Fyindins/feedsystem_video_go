@@ -81,15 +81,6 @@ func (vh *VideoHandler) ListByAuthorID(c *gin.Context) {
 	c.JSON(200, videos)
 }
 
-func (vh *VideoHandler) ListLatest(c *gin.Context) {
-	videos, err := vh.service.ListLatest(c)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(200, videos)
-}
-
 func (vh *VideoHandler) GetDetail(c *gin.Context) {
 	var req GetDetailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

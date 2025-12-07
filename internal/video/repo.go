@@ -26,19 +26,6 @@ func (vr *VideoRepository) ListByAuthorID(ctx context.Context, authorID int64) (
 	if err := vr.db.WithContext(ctx).
 		Where("author_id = ?", authorID).
 		Order("create_time desc").
-		Limit(5).
-		Offset(0).
-		Find(&videos).Error; err != nil {
-		return nil, err
-	}
-	return videos, nil
-}
-
-func (vr *VideoRepository) ListLatest(ctx context.Context) ([]Video, error) {
-	var videos []Video
-	if err := vr.db.WithContext(ctx).
-		Order("create_time desc").
-		Limit(5).
 		Offset(0).
 		Find(&videos).Error; err != nil {
 		return nil, err
