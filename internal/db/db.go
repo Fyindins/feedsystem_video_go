@@ -3,6 +3,7 @@ package db
 import (
 	"feedsystem_video_go/internal/account"
 	"feedsystem_video_go/internal/config"
+	"feedsystem_video_go/internal/video"
 	"fmt"
 
 	"gorm.io/driver/mysql"
@@ -22,7 +23,7 @@ func NewDB(dbcfg config.DatabaseConfig) (*gorm.DB, error) {
 }
 
 func AutoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(&account.Account{})
+	return db.AutoMigrate(&account.Account{}, &video.Video{})
 }
 
 func CloseDB(db *gorm.DB) error {
