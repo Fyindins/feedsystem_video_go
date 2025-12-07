@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "FeedSystem Video API",
+    "_postman_id": "05c51174-a3e4-4c86-9a79-2b0ca8856106",
+    "description": "Postman collection for video endpoints, including public queries and the JWT-protected publish action.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Latest Videos",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"latest videos fetched\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": {
+          "raw": "{{host}}/video/listLatest",
+          "host": ["{{host}}"],
+          "path": ["video", "listLatest"]
+        }
+      }
+    },
+    {
+      "name": "List Videos By Author ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"author videos fetched\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"author_id\": {{authorId}}\n}"
+        },
+        "url": {
+          "raw": "{{host}}/video/listByAuthorID",
+          "host": ["{{host}}"],
+          "path": ["video", "listByAuthorID"]
+        }
+      }
+    },
+    {
+      "name": "Get Video Detail",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"video detail fetched\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{videoId}}\n}"
+        },
+        "url": {
+          "raw": "{{host}}/video/getDetail",
+          "host": ["{{host}}"],
+          "path": ["video", "getDetail"]
+        }
+      }
+    },
+    {
+      "name": "Publish Video (JWT protected)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"jwt_token\")) {",
+              "    throw new Error(\"Set jwt_token first (usually the login API response)\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"video published\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"demo video\",\n  \"description\": \"auto generated via Postman\",\n  \"play_url\": \"http://example.com/demo.mp4\"\n}"
+        },
+        "url": {
+          "raw": "{{host}}/video/publish",
+          "host": ["{{host}}"],
+          "path": ["video", "publish"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "host", "value": "http://localhost:8080" },
+    { "key": "authorId", "value": "1" },
+    { "key": "videoId", "value": "1" },
+    { "key": "jwt_token", "value": "" }
+  ]
+}

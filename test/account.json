@@ -1,8 +1,8 @@
 {
   "info": {
     "name": "FeedSystem Account API",
-    "_postman_id": "d5b2888b-1a7d-4c38-9f6b-13ab3e8ffb51",
-    "description": "Basic user endpoints for feedsystem_video_go",
+    "_postman_id": "1f4c3ab3-6e6e-4a73-8b28-65f9d73f7dc4",
+    "description": "Account endpoints for feedsystem_video_go. Run Login first to capture jwt_token for protected calls.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -15,7 +15,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"pass123\"\n}"
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
         },
         "url": {
           "raw": "{{host}}/account/register",
@@ -25,7 +25,23 @@
       }
     },
     {
-      "name": "Rename Account",
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"login ok\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.token).to.exist;",
+              "    pm.collectionVariables.set(\"jwt_token\", data.token);",
+              "});"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "POST",
         "header": [
@@ -33,12 +49,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": 1,\n  \"new_username\": \"alice_new\"\n}"
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
         },
         "url": {
-          "raw": "{{host}}/account/rename",
+          "raw": "{{host}}/account/login",
           "host": ["{{host}}"],
-          "path": ["account", "rename"]
+          "path": ["account", "login"]
         }
       }
     },
@@ -51,7 +67,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"alice\",\n  \"old_password\": \"pass123\",\n  \"new_password\": \"newpass456\"\n}"
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"old_password\": \"{{password}}\",\n  \"new_password\": \"{{newPassword}}\"\n}"
         },
         "url": {
           "raw": "{{host}}/account/changePassword",
@@ -69,7 +85,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": 1\n}"
+          "raw": "{\n  \"id\": {{accountId}}\n}"
         },
         "url": {
           "raw": "{{host}}/account/findByID",
@@ -87,7 +103,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"alice_new\"\n}"
+          "raw": "{\n  \"username\": \"{{username}}\"\n}"
         },
         "url": {
           "raw": "{{host}}/account/findByUsername",
@@ -95,12 +111,79 @@
           "path": ["account", "findByUsername"]
         }
       }
+    },
+    {
+      "name": "Rename Account (JWT protected)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"jwt_token\")) {",
+              "    throw new Error(\"Please run Login to set jwt_token\");",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{accountId}},\n  \"new_username\": \"{{newUsername}}\"\n}"
+        },
+        "url": {
+          "raw": "{{host}}/account/rename",
+          "host": ["{{host}}"],
+          "path": ["account", "rename"]
+        }
+      }
+    },
+    {
+      "name": "Logout (JWT protected)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"jwt_token\")) {",
+              "    throw new Error(\"Please run Login to set jwt_token\");",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{accountId}}\n}"
+        },
+        "url": {
+          "raw": "{{host}}/account/logout",
+          "host": ["{{host}}"],
+          "path": ["account", "logout"]
+        }
+      }
     }
   ],
   "variable": [
-    {
-      "key": "host",
-      "value": "http://localhost:8080"
-    }
+    { "key": "host", "value": "http://localhost:8080" },
+    { "key": "username", "value": "alice" },
+    { "key": "password", "value": "pass123" },
+    { "key": "newPassword", "value": "newpass456" },
+    { "key": "newUsername", "value": "alice_new" },
+    { "key": "accountId", "value": "1" },
+    { "key": "jwt_token", "value": "" }
   ]
 }
