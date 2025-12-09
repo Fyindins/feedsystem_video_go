@@ -1,31 +1,16 @@
 {
   "info": {
     "name": "FeedSystem Feed API",
-    "_postman_id": "1cc7b43c-0f0e-4da2-86f2-5e46f8d19803",
-    "description": "Postman collection for feed endpoints that surface latest videos.",
+    "_postman_id": "4c2fd555-b880-4b14-8023-55a944936352",
+    "description": "Feed endpoints without embedded scripts.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "List Latest Feed",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"feed fetched\", function () {",
-                "    pm.response.to.have.status(200);",
-                "});"
-            ]
-          }
-        }
-      ],
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"limit\": {{feedLimit}},\n  \"latest_time\": {{feedLatestTime}}\n}"

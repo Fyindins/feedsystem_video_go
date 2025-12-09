@@ -1,8 +1,8 @@
 {
   "info": {
     "name": "FeedSystem Account API",
-    "_postman_id": "1f4c3ab3-6e6e-4a73-8b28-65f9d73f7dc4",
-    "description": "Account endpoints for feedsystem_video_go. Run Login first to capture jwt_token for protected calls.",
+    "_postman_id": "e5572218-8268-4a26-9ad8-77c13c908908",
+    "description": "Account endpoints without automated scripts. Fill jwt_token manually after calling Login.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -10,9 +10,7 @@
       "name": "Register Account",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -26,27 +24,9 @@
     },
     {
       "name": "Login",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"login ok\", function () {",
-              "    pm.response.to.have.status(200);",
-              "    var data = pm.response.json();",
-              "    pm.expect(data.token).to.exist;",
-              "    pm.collectionVariables.set(\"jwt_token\", data.token);",
-              "});"
-            ]
-          }
-        }
-      ],
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -62,9 +42,7 @@
       "name": "Change Password",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"username\": \"{{username}}\",\n  \"old_password\": \"{{password}}\",\n  \"new_password\": \"{{newPassword}}\"\n}"
@@ -80,9 +58,7 @@
       "name": "Find Account By ID",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"id\": {{accountId}}\n}"
@@ -98,9 +74,7 @@
       "name": "Find Account By Username",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"username\": \"{{username}}\"\n}"
@@ -114,19 +88,6 @@
     },
     {
       "name": "Rename Account (JWT protected)",
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "if (!pm.collectionVariables.get(\"jwt_token\")) {",
-              "    throw new Error(\"Please run Login to set jwt_token\");",
-              "}"
-            ]
-          }
-        }
-      ],
       "request": {
         "method": "POST",
         "header": [
@@ -146,19 +107,6 @@
     },
     {
       "name": "Logout (JWT protected)",
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "if (!pm.collectionVariables.get(\"jwt_token\")) {",
-              "    throw new Error(\"Please run Login to set jwt_token\");",
-              "}"
-            ]
-          }
-        }
-      ],
       "request": {
         "method": "POST",
         "header": [

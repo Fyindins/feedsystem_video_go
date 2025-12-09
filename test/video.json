@@ -1,31 +1,16 @@
 {
   "info": {
     "name": "FeedSystem Video API",
-    "_postman_id": "05c51174-a3e4-4c86-9a79-2b0ca8856106",
-    "description": "Postman collection for video endpoints, including public queries and the JWT-protected publish action.",
+    "_postman_id": "8294cdbd-2324-4cac-8768-6bf2157d272b",
+    "description": "Video endpoints without embedded scripts. Supply jwt_token manually for publish request.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "List Videos By Author ID",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"author videos fetched\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});"
-            ]
-          }
-        }
-      ],
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"author_id\": {{authorId}}\n}"
@@ -39,24 +24,9 @@
     },
     {
       "name": "Get Video Detail",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"video detail fetched\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});"
-            ]
-          }
-        }
-      ],
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"id\": {{videoId}}\n}"
@@ -70,30 +40,6 @@
     },
     {
       "name": "Publish Video (JWT protected)",
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "if (!pm.collectionVariables.get(\"jwt_token\")) {",
-              "    throw new Error(\"Set jwt_token first (usually the login API response)\");",
-              "}"
-            ]
-          }
-        },
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"video published\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});"
-            ]
-          }
-        }
-      ],
       "request": {
         "method": "POST",
         "header": [
@@ -102,7 +48,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"demo video\",\n  \"description\": \"auto generated via Postman\",\n  \"play_url\": \"http://example.com/demo.mp4\"\n}"
+          "raw": "{\n  \"title\": \"demo video\",\n  \"description\": \"manual request\",\n  \"play_url\": \"http://example.com/demo.mp4\"\n}"
         },
         "url": {
           "raw": "{{host}}/video/publish",
