@@ -28,12 +28,11 @@ func (f *FeedHandler) ListLatest(c *gin.Context) {
 	if req.Limit <= 0 || req.Limit > 50 {
 		req.Limit = 10
 	}
-	ctx := c.Request.Context()
 	var latestTime time.Time
 	if req.LatestTime > 0 {
 		latestTime = time.Unix(req.LatestTime, 0)
 	}
-	feeds, err := f.service.ListLatest(ctx, req.Limit, latestTime)
+	feeds, err := f.service.ListLatest(c.Request.Context(), req.Limit, latestTime)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
