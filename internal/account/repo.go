@@ -19,7 +19,7 @@ func (ar *AccountRepository) CreateAccount(account *Account) error {
 	return nil
 }
 
-func (ar *AccountRepository) RenameByID(id uint, newUsername string) error {
+func (ar *AccountRepository) Rename(id uint, newUsername string) error {
 	if err := ar.db.Model(&Account{}).Where("id = ?", id).Update("username", newUsername).Error; err != nil {
 		return err
 	}

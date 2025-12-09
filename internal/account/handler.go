@@ -1,6 +1,8 @@
 package account
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -83,13 +85,18 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "account created"})
 }
 
-func (h *AccountHandler) RenameByID(c *gin.Context) {
+func (h *AccountHandler) Rename(c *gin.Context) {
 	var req RenameByIDRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.accountService.RenameByID(req.ID, req.NewUsername); err != nil {
+	accountID, err := getAccountID(c)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.accountService.Rename(accountID, req.NewUsername); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -162,4 +169,16 @@ func (h *AccountHandler) Logout(c *gin.Context) {
 		return
 	}
 	c.JSON(200, LogoutResponse{})
+}
+
+func getAccountID(c *gin.Context) (uint, error) {
+	value, exists := c.Get("accountID")
+	if !exists {
+		return 0, errors.New("accountID not found")
+	}
+	id, ok := value.(uint)
+	if !ok {
+		return 0, errors.New("accountID has invalid type")
+	}
+	return id, nil
 }

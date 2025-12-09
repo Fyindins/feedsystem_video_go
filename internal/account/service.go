@@ -27,8 +27,8 @@ func (as *AccountService) CreateAccount(account *Account) error {
 	return nil
 }
 
-func (as *AccountService) RenameByID(id uint, newUsername string) error {
-	if err := as.accountRepository.RenameByID(id, newUsername); err != nil {
+func (as *AccountService) Rename(accountID uint, newUsername string) error {
+	if err := as.accountRepository.Rename(accountID, newUsername); err != nil {
 		return err
 	}
 	return nil
