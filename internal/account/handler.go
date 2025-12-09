@@ -1,13 +1,11 @@
 package account
 
 import (
-	"feedsystem_video_go/internal/account"
-
 	"github.com/gin-gonic/gin"
 )
 
 type AccountHandler struct {
-	accountService *account.AccountService
+	accountService *AccountService
 }
 
 type CreateAccountRequest struct {
@@ -66,7 +64,7 @@ type LogoutRequest struct {
 type LogoutResponse struct {
 }
 
-func NewAccountHandler(accountService *account.AccountService) *AccountHandler {
+func NewAccountHandler(accountService *AccountService) *AccountHandler {
 	return &AccountHandler{accountService: accountService}
 }
 func (h *AccountHandler) CreateAccount(c *gin.Context) {
@@ -75,7 +73,7 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.accountService.CreateAccount(&account.Account{
+	if err := h.accountService.CreateAccount(&Account{
 		Username: req.Username,
 		Password: req.Password,
 	}); err != nil {
