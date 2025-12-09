@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -45,4 +46,18 @@ func JWTAuth(accountRepo *account.AccountRepository) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func GetAccountID(c *gin.Context) (uint, error) {
+	uidValue, exists := c.Get("accountID")
+	if !exists {
+		return 0, errors.New("accountID not found")
+	}
+
+	accountID, ok := uidValue.(uint)
+	if !ok {
+		return 0, errors.New("accountID has invalid type")
+	}
+
+	return accountID, nil
 }
