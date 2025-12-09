@@ -50,6 +50,7 @@ func (as *AccountService) ChangePassword(ctx context.Context, username, oldPassw
 	if err := as.accountRepository.ChangePassword(ctx, account.ID, string(passwordHash)); err != nil {
 		return err
 	}
+	as.Logout(ctx, account.ID)
 	return nil
 }
 
