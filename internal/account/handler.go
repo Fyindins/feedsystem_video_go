@@ -57,7 +57,7 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.accountService.CreateAccount(&Account{
+	if err := h.accountService.CreateAccount(c.Request.Context(), &Account{
 		Username: req.Username,
 		Password: req.Password,
 	}); err != nil {
@@ -78,7 +78,7 @@ func (h *AccountHandler) Rename(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.accountService.Rename(accountID, req.NewUsername); err != nil {
+	if err := h.accountService.Rename(c.Request.Context(), accountID, req.NewUsername); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -91,7 +91,7 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.accountService.ChangePassword(req.Username, req.OldPassword, req.NewPassword); err != nil {
+	if err := h.accountService.ChangePassword(c.Request.Context(), req.Username, req.OldPassword, req.NewPassword); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -104,7 +104,7 @@ func (h *AccountHandler) FindByID(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if account, err := h.accountService.FindByID(req.ID); err != nil {
+	if account, err := h.accountService.FindByID(c.Request.Context(), req.ID); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	} else {
@@ -118,7 +118,7 @@ func (h *AccountHandler) FindByUsername(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if account, err := h.accountService.FindByUsername(req.Username); err != nil {
+	if account, err := h.accountService.FindByUsername(c.Request.Context(), req.Username); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	} else {
@@ -132,7 +132,7 @@ func (h *AccountHandler) Login(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if token, err := h.accountService.Login(req.Username, req.Password); err != nil {
+	if token, err := h.accountService.Login(c.Request.Context(), req.Username, req.Password); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	} else {
@@ -146,7 +146,7 @@ func (h *AccountHandler) Logout(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.accountService.Logout(accountID); err != nil {
+	if err := h.accountService.Logout(c.Request.Context(), accountID); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}

@@ -1,6 +1,7 @@
 package account
 
 import (
+	"context"
 	"errors"
 	"feedsystem_video_go/internal/auth"
 
@@ -15,27 +16,27 @@ func NewAccountService(accountRepository *AccountRepository) *AccountService {
 	return &AccountService{accountRepository: accountRepository}
 }
 
-func (as *AccountService) CreateAccount(account *Account) error {
+func (as *AccountService) CreateAccount(ctx context.Context, account *Account) error {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 	account.Password = string(passwordHash)
-	if err := as.accountRepository.CreateAccount(account); err != nil {
+	if err := as.accountRepository.CreateAccount(ctx, account); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (as *AccountService) Rename(accountID uint, newUsername string) error {
-	if err := as.accountRepository.Rename(accountID, newUsername); err != nil {
+func (as *AccountService) Rename(ctx context.Context, accountID uint, newUsername string) error {
+	if err := as.accountRepository.Rename(ctx, accountID, newUsername); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (as *AccountService) ChangePassword(username, oldPassword, newPassword string) error {
-	account, err := as.FindByUsername(username)
+func (as *AccountService) ChangePassword(ctx context.Context, username, oldPassword, newPassword string) error {
+	account, err := as.FindByUsername(ctx, username)
 	if err != nil {
 		return err
 	}
@@ -46,30 +47,30 @@ func (as *AccountService) ChangePassword(username, oldPassword, newPassword stri
 	if err != nil {
 		return err
 	}
-	if err := as.accountRepository.ChangePassword(account.ID, string(passwordHash)); err != nil {
+	if err := as.accountRepository.ChangePassword(ctx, account.ID, string(passwordHash)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (as *AccountService) FindByID(id uint) (*Account, error) {
-	if account, err := as.accountRepository.FindByID(id); err != nil {
+func (as *AccountService) FindByID(ctx context.Context, id uint) (*Account, error) {
+	if account, err := as.accountRepository.FindByID(ctx, id); err != nil {
 		return nil, err
 	} else {
 		return account, nil
 	}
 }
 
-func (as *AccountService) FindByUsername(username string) (*Account, error) {
-	if account, err := as.accountRepository.FindByUsername(username); err != nil {
+func (as *AccountService) FindByUsername(ctx context.Context, username string) (*Account, error) {
+	if account, err := as.accountRepository.FindByUsername(ctx, username); err != nil {
 		return nil, err
 	} else {
 		return account, nil
 	}
 }
 
-func (as *AccountService) Login(username, password string) (string, error) {
-	account, err := as.FindByUsername(username)
+func (as *AccountService) Login(ctx context.Context, username, password string) (string, error) {
+	account, err := as.FindByUsername(ctx, username)
 	if err != nil {
 		return "", err
 	}
@@ -81,20 +82,20 @@ func (as *AccountService) Login(username, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := as.accountRepository.Login(account.ID, token); err != nil {
+	if err := as.accountRepository.Login(ctx, account.ID, token); err != nil {
 		return "", err
 	}
 
 	return token, nil
 }
 
-func (as *AccountService) Logout(accountID uint) error {
-	account, err := as.FindByID(accountID)
+func (as *AccountService) Logout(ctx context.Context, accountID uint) error {
+	account, err := as.FindByID(ctx, accountID)
 	if err != nil {
 		return err
 	}
 	if account.Token == "" {
 		return errors.New("account already logged out")
 	}
-	return as.accountRepository.Logout(account.ID, account.Token)
+	return as.accountRepository.Logout(ctx, account.ID)
 }

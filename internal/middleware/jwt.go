@@ -35,7 +35,7 @@ func JWTAuth(accountRepo *account.AccountRepository) gin.HandlerFunc {
 			return
 		}
 
-		accountInfo, err := accountRepo.FindByID(claims.AccountID)
+		accountInfo, err := accountRepo.FindByID(c.Request.Context(), claims.AccountID)
 		if err != nil || accountInfo.Token == "" || accountInfo.Token != tokenString {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token has been revoked"})
 			return
