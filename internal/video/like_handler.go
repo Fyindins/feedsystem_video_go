@@ -6,14 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type LikeRequest struct {
-	VideoID uint `json:"video_id"`
-}
-
-type LikeHandler struct {
-	service *LikeService
-}
-
 func NewLikeHandler(service *LikeService) *LikeHandler {
 	return &LikeHandler{service: service}
 }
