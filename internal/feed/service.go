@@ -7,23 +7,18 @@ import (
 )
 
 type FeedService struct {
-	repo *FeedRepository
+	repo     *FeedRepository
+	likeRepo *video.LikeRepository
 }
 
-type FeedResponse struct {
-	VideoList []video.Video `json:"video_list"`
-	NextTime  time.Time     `json:"next_time"`
-	HasMore   bool          `json:"has_more"`
+func NewFeedService(repo *FeedRepository, likeRepo *video.LikeRepository) *FeedService {
+	return &FeedService{repo: repo, likeRepo: likeRepo}
 }
 
-func NewFeedService(repo *FeedRepository) *FeedService {
-	return &FeedService{repo: repo}
-}
-
-func (f *FeedService) ListLatest(ctx context.Context, limit int, latestBefore time.Time) (FeedResponse, error) {
+func (f *FeedService) ListLatest(ctx context.Context, limit int, latestBefore time.Time) (ListLatestResponse, error) {
 	videos, err := f.repo.ListLatest(ctx, limit, latestBefore)
 	if err != nil {
-		return FeedResponse{}, err
+		return ListLatestResponse{}, err
 	}
 	var nextTime time.Time
 	if len(videos) > 0 {
@@ -32,9 +27,27 @@ func (f *FeedService) ListLatest(ctx context.Context, limit int, latestBefore ti
 		nextTime = time.Time{}
 	}
 	hasMore := len(videos) == limit
-	resp := FeedResponse{
-		VideoList: videos,
-		NextTime:  nextTime,
+	feedVideos := make([]FeedVideoItem, 0, len(videos))
+	for _, video := range videos {
+		isLiked, err := f.likeRepo.IsLiked(ctx, video.ID, video.AuthorID)
+		if err != nil {
+			return ListLatestResponse{}, err
+		}
+		feedVideos = append(feedVideos, FeedVideoItem{
+			ID:          video.ID,
+			Author:      FeedAuthor{ID: video.AuthorID, Username: video.Username},
+			Title:       video.Title,
+			Description: video.Description,
+			PlayURL:     video.PlayURL,
+			CoverURL:    video.CoverURL,
+			CreateTime:  video.CreateTime.Unix(),
+			LikesCount:  video.LikesCount,
+			IsLiked:     isLiked,
+		})
+	}
+	resp := ListLatestResponse{
+		VideoList: feedVideos,
+		NextTime:  nextTime.Unix(),
 		HasMore:   hasMore,
 	}
 	return resp, nil

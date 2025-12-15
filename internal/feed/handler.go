@@ -6,11 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ListLatestRequest struct {
-	Limit      int   `json:"limit"`
-	LatestTime int64 `json:"latest_time"`
-}
-
 type FeedHandler struct {
 	service *FeedService
 }
@@ -32,10 +27,10 @@ func (f *FeedHandler) ListLatest(c *gin.Context) {
 	if req.LatestTime > 0 {
 		latestTime = time.Unix(req.LatestTime, 0)
 	}
-	feeds, err := f.service.ListLatest(c.Request.Context(), req.Limit, latestTime)
+	feedItems, err := f.service.ListLatest(c.Request.Context(), req.Limit, latestTime)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, feeds)
+	c.JSON(200, feedItems)
 }
