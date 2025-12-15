@@ -33,7 +33,7 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 	// video
 	videoRepository := video.NewVideoRepository(db)
 	videoService := video.NewVideoService(videoRepository)
-	videoHandler := video.NewVideoHandler(videoService)
+	videoHandler := video.NewVideoHandler(videoService, accountService)
 	videoGroup := r.Group("/video")
 	{
 		videoGroup.POST("/listByAuthorID", videoHandler.ListByAuthorID)
@@ -62,7 +62,7 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 
 	// feed
 	feedRepository := feed.NewFeedRepository(db)
-	feedService := feed.NewFeedService(feedRepository)
+	feedService := feed.NewFeedService(feedRepository, likeRepository)
 	feedHandler := feed.NewFeedHandler(feedService)
 	feedGroup := r.Group("/feed")
 	{
