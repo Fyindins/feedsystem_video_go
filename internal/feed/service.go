@@ -67,6 +67,10 @@ func (f *FeedService) ListLikesCount(ctx context.Context, limit int, likesCountB
 	hasMore := len(videos) == limit
 	feedVideos := make([]FeedVideoItem, 0, len(videos))
 	for _, video := range videos {
+		isLiked, err := f.likeRepo.IsLiked(ctx, video.ID, video.AuthorID)
+		if err != nil {
+			return ListLikesCountResponse{}, err
+		}
 		feedVideos = append(feedVideos, FeedVideoItem{
 			ID:          video.ID,
 			Author:      FeedAuthor{ID: video.AuthorID, Username: video.Username},
@@ -75,6 +79,7 @@ func (f *FeedService) ListLikesCount(ctx context.Context, limit int, likesCountB
 			PlayURL:     video.PlayURL,
 			CoverURL:    video.CoverURL,
 			LikesCount:  video.LikesCount,
+			IsLiked:     isLiked,
 		})
 	}
 	resp := ListLikesCountResponse{
