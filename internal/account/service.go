@@ -5,12 +5,19 @@ import (
 	"errors"
 	"feedsystem_video_go/internal/auth"
 
+	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type AccountService struct {
 	accountRepository *AccountRepository
 }
+
+var (
+	ErrUsernameTaken       = errors.New("username already exists")
+	ErrNewUsernameRequired = errors.New("new_username is required")
+)
 
 func NewAccountService(accountRepository *AccountRepository) *AccountService {
 	return &AccountService{accountRepository: accountRepository}
@@ -28,11 +35,28 @@ func (as *AccountService) CreateAccount(ctx context.Context, account *Account) e
 	return nil
 }
 
-func (as *AccountService) Rename(ctx context.Context, accountID uint, newUsername string) error {
-	if err := as.accountRepository.Rename(ctx, accountID, newUsername); err != nil {
-		return err
+func (as *AccountService) Rename(ctx context.Context, accountID uint, newUsername string) (string, error) {
+	if newUsername == "" {
+		return "", ErrNewUsernameRequired
 	}
-	return nil
+
+	token, err := auth.GenerateToken(accountID, newUsername)
+	if err != nil {
+		return "", err
+	}
+
+	if err := as.accountRepository.RenameWithToken(ctx, accountID, newUsername, token); err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			return "", ErrUsernameTaken
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", err
+		}
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (as *AccountService) ChangePassword(ctx context.Context, username, oldPassword, newPassword string) error {

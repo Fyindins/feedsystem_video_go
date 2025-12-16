@@ -4,48 +4,11 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AccountHandler struct {
 	accountService *AccountService
-}
-
-type CreateAccountRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type RenameRequest struct {
-	NewUsername string `json:"new_username"`
-}
-
-type FindByIDRequest struct {
-	ID uint `json:"id"`
-}
-
-type FindByIDResponse struct {
-	ID       uint   `json:"id"`
-	Username string `json:"username"`
-}
-
-type FindByUsernameRequest struct {
-	Username string `json:"username"`
-}
-
-type FindByUsernameResponse struct {
-	ID       uint   `json:"id"`
-	Username string `json:"username"`
-}
-
-type ChangePasswordRequest struct {
-	Username    string `json:"username"`
-	OldPassword string `json:"old_password"`
-	NewPassword string `json:"new_password"`
-}
-
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
 }
 
 func NewAccountHandler(accountService *AccountService) *AccountHandler {
@@ -78,11 +41,24 @@ func (h *AccountHandler) Rename(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.accountService.Rename(c.Request.Context(), accountID, req.NewUsername); err != nil {
+	token, err := h.accountService.Rename(c.Request.Context(), accountID, req.NewUsername)
+	if err != nil {
+		if errors.Is(err, ErrNewUsernameRequired) {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, ErrUsernameTaken) {
+			c.JSON(409, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(404, gin.H{"error": "account not found"})
+			return
+		}
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"message": "account renamed"})
+	c.JSON(200, gin.H{"token": token})
 }
 
 func (h *AccountHandler) ChangePassword(c *gin.Context) {

@@ -22,10 +22,30 @@ func (ar *AccountRepository) CreateAccount(ctx context.Context, account *Account
 }
 
 func (ar *AccountRepository) Rename(ctx context.Context, id uint, newUsername string) error {
-	if err := ar.db.WithContext(ctx).Model(&Account{}).Where("id = ?", id).Update("username", newUsername).Error; err != nil {
-		return err
+	result := ar.db.WithContext(ctx).Model(&Account{}).Where("id = ?", id).Update("username", newUsername)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (ar *AccountRepository) RenameWithToken(ctx context.Context, id uint, newUsername string, token string) error {
+	return ar.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&Account{}).Where("id = ?", id).Update("username", newUsername)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		if err := tx.Model(&Account{}).Where("id = ?", id).Update("token", token).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (ar *AccountRepository) ChangePassword(ctx context.Context, id uint, newPassword string) error {
