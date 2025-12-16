@@ -23,7 +23,7 @@ func NewDB(dbcfg config.DatabaseConfig) (*gorm.DB, error) {
 }
 
 func AutoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(&account.Account{}, &video.Video{}, &video.Like{})
+	return db.AutoMigrate(&account.Account{}, &video.Video{}, &video.Like{}, &video.Comment{})
 }
 
 func CloseDB(db *gorm.DB) error {

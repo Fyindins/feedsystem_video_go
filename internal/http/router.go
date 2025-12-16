@@ -59,12 +59,26 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 		protectedLikeGroup.POST("/unlike", likeHandler.Unlike)
 		protectedLikeGroup.POST("/isLiked", likeHandler.IsLiked)
 	}
-
+	// comment
+	commentRepository := video.NewCommentRepository(db)
+	commentService := video.NewCommentService(commentRepository, videoRepository)
+	commentHandler := video.NewCommentHandler(commentService, accountService)
+	commentGroup := r.Group("/comment")
+	{
+		commentGroup.POST("/listAll", commentHandler.GetAllComments)
+	}
+	protectedCommentGroup := commentGroup.Group("")
+	protectedCommentGroup.Use(middleware.JWTAuth(accountRepository))
+	{
+		protectedCommentGroup.POST("/publish", commentHandler.PublishComment)
+		protectedCommentGroup.POST("/delete", commentHandler.DeleteComment)
+	}
 	// feed
 	feedRepository := feed.NewFeedRepository(db)
 	feedService := feed.NewFeedService(feedRepository, likeRepository)
 	feedHandler := feed.NewFeedHandler(feedService)
 	feedGroup := r.Group("/feed")
+	feedGroup.Use(middleware.SoftJWTAuth(accountRepository))
 	{
 		feedGroup.POST("/listLatest", feedHandler.ListLatest)
 		feedGroup.POST("/listLikesCount", feedHandler.ListLikesCount)
