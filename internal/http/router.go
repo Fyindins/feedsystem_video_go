@@ -67,6 +67,7 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 	feedGroup := r.Group("/feed")
 	{
 		feedGroup.POST("/listLatest", feedHandler.ListLatest)
+		feedGroup.POST("/listLikesCount", feedHandler.ListLikesCount)
 	}
 	return r
 }

@@ -52,3 +52,35 @@ func (f *FeedService) ListLatest(ctx context.Context, limit int, latestBefore ti
 	}
 	return resp, nil
 }
+
+func (f *FeedService) ListLikesCount(ctx context.Context, limit int, likesCountBefore int64) (ListLikesCountResponse, error) {
+	videos, err := f.repo.ListLikesCount(ctx, limit, likesCountBefore)
+	if err != nil {
+		return ListLikesCountResponse{}, err
+	}
+	var nextLikesCountBefore int64
+	if len(videos) > 0 {
+		nextLikesCountBefore = videos[len(videos)-1].LikesCount
+	} else {
+		nextLikesCountBefore = 0
+	}
+	hasMore := len(videos) == limit
+	feedVideos := make([]FeedVideoItem, 0, len(videos))
+	for _, video := range videos {
+		feedVideos = append(feedVideos, FeedVideoItem{
+			ID:          video.ID,
+			Author:      FeedAuthor{ID: video.AuthorID, Username: video.Username},
+			Title:       video.Title,
+			Description: video.Description,
+			PlayURL:     video.PlayURL,
+			CoverURL:    video.CoverURL,
+			LikesCount:  video.LikesCount,
+		})
+	}
+	resp := ListLikesCountResponse{
+		VideoList:            feedVideos,
+		NextLikesCountBefore: nextLikesCountBefore,
+		HasMore:              hasMore,
+	}
+	return resp, nil
+}
