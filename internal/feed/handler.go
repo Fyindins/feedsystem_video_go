@@ -1,6 +1,7 @@
 package feed
 
 import (
+	"feedsystem_video_go/internal/middleware"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,11 @@ func (f *FeedHandler) ListLatest(c *gin.Context) {
 	if req.LatestTime > 0 {
 		latestTime = time.Unix(req.LatestTime, 0)
 	}
-	feedItems, err := f.service.ListLatest(c.Request.Context(), req.Limit, latestTime)
+	viewerAccountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		viewerAccountID = 0
+	}
+	feedItems, err := f.service.ListLatest(c.Request.Context(), req.Limit, latestTime, viewerAccountID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -44,7 +49,11 @@ func (f *FeedHandler) ListLikesCount(c *gin.Context) {
 	if req.Limit <= 0 || req.Limit > 50 {
 		req.Limit = 10
 	}
-	feedItems, err := f.service.ListLikesCount(c.Request.Context(), req.Limit, req.LikesCount)
+	viewerAccountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		viewerAccountID = 0
+	}
+	feedItems, err := f.service.ListLikesCount(c.Request.Context(), req.Limit, req.LikesCount, viewerAccountID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

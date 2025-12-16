@@ -15,23 +15,28 @@ func NewFeedService(repo *FeedRepository, likeRepo *video.LikeRepository) *FeedS
 	return &FeedService{repo: repo, likeRepo: likeRepo}
 }
 
-func (f *FeedService) ListLatest(ctx context.Context, limit int, latestBefore time.Time) (ListLatestResponse, error) {
+func (f *FeedService) ListLatest(ctx context.Context, limit int, latestBefore time.Time, viewerAccountID uint) (ListLatestResponse, error) {
 	videos, err := f.repo.ListLatest(ctx, limit, latestBefore)
 	if err != nil {
 		return ListLatestResponse{}, err
 	}
-	var nextTime time.Time
+	var nextTime int64
 	if len(videos) > 0 {
-		nextTime = videos[len(videos)-1].CreateTime
+		nextTime = videos[len(videos)-1].CreateTime.Unix()
 	} else {
-		nextTime = time.Time{}
+		nextTime = 0
 	}
 	hasMore := len(videos) == limit
 	feedVideos := make([]FeedVideoItem, 0, len(videos))
 	for _, video := range videos {
-		isLiked, err := f.likeRepo.IsLiked(ctx, video.ID, video.AuthorID)
-		if err != nil {
-			return ListLatestResponse{}, err
+		var isLiked bool
+		if viewerAccountID == 0 {
+			isLiked = false
+		} else {
+			isLiked, err = f.likeRepo.IsLiked(ctx, video.ID, viewerAccountID)
+			if err != nil {
+				return ListLatestResponse{}, err
+			}
 		}
 		feedVideos = append(feedVideos, FeedVideoItem{
 			ID:          video.ID,
@@ -47,13 +52,13 @@ func (f *FeedService) ListLatest(ctx context.Context, limit int, latestBefore ti
 	}
 	resp := ListLatestResponse{
 		VideoList: feedVideos,
-		NextTime:  nextTime.Unix(),
+		NextTime:  nextTime,
 		HasMore:   hasMore,
 	}
 	return resp, nil
 }
 
-func (f *FeedService) ListLikesCount(ctx context.Context, limit int, likesCountBefore int64) (ListLikesCountResponse, error) {
+func (f *FeedService) ListLikesCount(ctx context.Context, limit int, likesCountBefore int64, viewerAccountID uint) (ListLikesCountResponse, error) {
 	videos, err := f.repo.ListLikesCount(ctx, limit, likesCountBefore)
 	if err != nil {
 		return ListLikesCountResponse{}, err
@@ -67,9 +72,14 @@ func (f *FeedService) ListLikesCount(ctx context.Context, limit int, likesCountB
 	hasMore := len(videos) == limit
 	feedVideos := make([]FeedVideoItem, 0, len(videos))
 	for _, video := range videos {
-		isLiked, err := f.likeRepo.IsLiked(ctx, video.ID, video.AuthorID)
-		if err != nil {
-			return ListLikesCountResponse{}, err
+		var isLiked bool
+		if viewerAccountID == 0 {
+			isLiked = false
+		} else {
+			isLiked, err = f.likeRepo.IsLiked(ctx, video.ID, viewerAccountID)
+			if err != nil {
+				return ListLikesCountResponse{}, err
+			}
 		}
 		feedVideos = append(feedVideos, FeedVideoItem{
 			ID:          video.ID,
