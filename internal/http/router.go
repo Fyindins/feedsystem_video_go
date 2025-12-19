@@ -4,6 +4,7 @@ import (
 	"feedsystem_video_go/internal/account"
 	"feedsystem_video_go/internal/feed"
 	"feedsystem_video_go/internal/middleware"
+	"feedsystem_video_go/internal/social"
 	"feedsystem_video_go/internal/video"
 
 	"github.com/gin-gonic/gin"
@@ -72,6 +73,19 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 	{
 		protectedCommentGroup.POST("/publish", commentHandler.PublishComment)
 		protectedCommentGroup.POST("/delete", commentHandler.DeleteComment)
+	}
+	// social
+	socialRepository := social.NewSocialRepository(db)
+	socialService := social.NewSocialService(socialRepository, accountRepository)
+	socialHandler := social.NewSocialHandler(socialService)
+	socialGroup := r.Group("/social")
+	protectedSocialGroup := socialGroup.Group("")
+	protectedSocialGroup.Use(middleware.JWTAuth(accountRepository))
+	{
+		protectedSocialGroup.POST("/follow", socialHandler.Follow)
+		protectedSocialGroup.POST("/unfollow", socialHandler.Unfollow)
+		protectedSocialGroup.POST("/getAllFollowers", socialHandler.GetAllFollowers)
+		protectedSocialGroup.POST("/getAllVloggers", socialHandler.GetAllVloggers)
 	}
 	// feed
 	feedRepository := feed.NewFeedRepository(db)
