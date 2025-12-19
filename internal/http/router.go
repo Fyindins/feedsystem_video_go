@@ -97,5 +97,10 @@ func SetRouter(db *gorm.DB) *gin.Engine {
 		feedGroup.POST("/listLatest", feedHandler.ListLatest)
 		feedGroup.POST("/listLikesCount", feedHandler.ListLikesCount)
 	}
+	protectedFeedGroup := feedGroup.Group("")
+	protectedFeedGroup.Use(middleware.JWTAuth(accountRepository))
+	{
+		protectedFeedGroup.POST("/listByFollowing", feedHandler.ListByFollowing)
+	}
 	return r
 }

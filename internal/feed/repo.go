@@ -2,6 +2,7 @@ package feed
 
 import (
 	"context"
+	"feedsystem_video_go/internal/social"
 	"feedsystem_video_go/internal/video"
 	"time"
 
@@ -35,6 +36,23 @@ func (repo *FeedRepository) ListLikesCount(ctx context.Context, limit int, likes
 		Order("likes_count DESC")
 	if likesCountBefore > 0 {
 		query = query.Where("likes_count < ?", likesCountBefore)
+	}
+	if err := query.Limit(limit).Find(&videos).Error; err != nil {
+		return nil, err
+	}
+	return videos, nil
+}
+
+func (repo *FeedRepository) ListByFollowing(ctx context.Context, limit int, viewerAccountID uint) ([]video.Video, error) {
+	var videos []video.Video
+	query := repo.db.WithContext(ctx).Model(&video.Video{}).
+		Order("create_time DESC")
+	if viewerAccountID > 0 {
+		followingSubQuery := repo.db.WithContext(ctx).
+			Model(&social.Social{}).
+			Select("vlogger_id").
+			Where("follower_id = ?", viewerAccountID)
+		query = query.Where("author_id IN (?)", followingSubQuery)
 	}
 	if err := query.Limit(limit).Find(&videos).Error; err != nil {
 		return nil, err

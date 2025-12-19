@@ -99,3 +99,45 @@ func (f *FeedService) ListLikesCount(ctx context.Context, limit int, likesCountB
 	}
 	return resp, nil
 }
+
+func (f *FeedService) ListByFollowing(ctx context.Context, limit int, viewerAccountID uint) (ListByFollowingResponse, error) {
+	videos, err := f.repo.ListByFollowing(ctx, limit, viewerAccountID)
+	if err != nil {
+		return ListByFollowingResponse{}, err
+	}
+	var nextTime int64
+	if len(videos) > 0 {
+		nextTime = videos[len(videos)-1].CreateTime.Unix()
+	} else {
+		nextTime = 0
+	}
+	hasMore := len(videos) == limit
+	feedVideos := make([]FeedVideoItem, 0, len(videos))
+	for _, video := range videos {
+		var isLiked bool
+		if viewerAccountID == 0 {
+			isLiked = false
+		} else {
+			isLiked, err = f.likeRepo.IsLiked(ctx, video.ID, viewerAccountID)
+			if err != nil {
+				return ListByFollowingResponse{}, err
+			}
+		}
+		feedVideos = append(feedVideos, FeedVideoItem{
+			ID:          video.ID,
+			Author:      FeedAuthor{ID: video.AuthorID, Username: video.Username},
+			Title:       video.Title,
+			Description: video.Description,
+			PlayURL:     video.PlayURL,
+			CoverURL:    video.CoverURL,
+			LikesCount:  video.LikesCount,
+			IsLiked:     isLiked,
+		})
+	}
+	resp := ListByFollowingResponse{
+		VideoList: feedVideos,
+		NextTime:  nextTime,
+		HasMore:   hasMore,
+	}
+	return resp, nil
+}

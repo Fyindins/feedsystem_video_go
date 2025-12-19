@@ -38,3 +38,13 @@ type ListLikesCountResponse struct {
 	NextLikesCountBefore int64           `json:"next_likes_count_before"`
 	HasMore              bool            `json:"has_more"`
 }
+
+type ListByFollowingRequest struct {
+	Limit int `json:"limit"`
+}
+
+type ListByFollowingResponse struct {
+	VideoList []FeedVideoItem `json:"video_list"`
+	NextTime  int64           `json:"next_time"`
+	HasMore   bool            `json:"has_more"`
+}

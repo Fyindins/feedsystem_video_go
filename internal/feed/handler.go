@@ -60,3 +60,24 @@ func (f *FeedHandler) ListLikesCount(c *gin.Context) {
 	}
 	c.JSON(200, feedItems)
 }
+
+func (f *FeedHandler) ListByFollowing(c *gin.Context) {
+	var req ListByFollowingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if req.Limit <= 0 || req.Limit > 50 {
+		req.Limit = 10
+	}
+	viewerAccountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		viewerAccountID = 0
+	}
+	feedItems, err := f.service.ListByFollowing(c.Request.Context(), req.Limit, viewerAccountID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, feedItems)
+}
