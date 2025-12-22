@@ -40,6 +40,9 @@ database:
 
 可选环境变量：
 - `JWT_SECRET`：JWT 签名密钥；不设置则使用默认值（仅建议本地调试）。
+- `REDIS_ADDR`：Redis 地址（默认 `127.0.0.1:6379`），用于缓存（连不上会自动降级为不使用缓存）。
+- `REDIS_PASSWORD`：Redis 密码（可选）。
+- `REDIS_DB`：Redis DB 库号（默认 `0`）。
 
 ## 认证说明（与代码一致）
 - 认证 Header：`Authorization: Bearer <jwt>`
@@ -112,12 +115,12 @@ database:
 | 路径 | 是否需要 JWT | 说明 |
 |------|-------------|------|
 | `/feed/listLatest` | 否（可选 JWT） | `{"limit":10,"latest_time":0}` |
-| `/feed/listLikesCount` | 否（可选 JWT） | `{"limit":10,"likes_count":0}` |
+| `/feed/listLikesCount` | 否（可选 JWT） | `{"limit":10,"likes_count_before":0,"id_before":0}` |
 | `/feed/listByFollowing` | 否（可选 JWT） | `{"limit":10}`（带 token 时按关注作者过滤；不带 token 时为通用流） |
 
 分页说明：
 - `/feed/listLatest`：`latest_time` 为 Unix 秒时间戳；响应 `next_time` 也为 Unix 秒（`0` 表示无下一页）。
-- `/feed/listLikesCount`：`likes_count` 表示上一页最后一条的点赞数；响应 `next_likes_count_before` 用于下一页请求。
+- `/feed/listLikesCount`：使用复合游标分页：请求携带 `likes_count_before` + `id_before`（两者一起用；全为 `0` 表示第一页）；响应返回 `next_likes_count_before` + `next_id_before` 用于下一页请求。
 
 ## 数据表（自动迁移）
 启动时会执行 `AutoMigrate`（`internal/db/db.go`），创建/更新：`Account`、`Video`、`Like`、`Comment`、`Social`。
