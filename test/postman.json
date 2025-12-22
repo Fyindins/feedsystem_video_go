@@ -2,7 +2,7 @@
   "info": {
     "name": "FeedSystem API (All-in-One)",
     "_postman_id": "1a41aef7-6f8a-4bc4-8f55-0c6b12b930d2",
-    "description": "All endpoints in one collection.\n\nSuggested run order:\n1) Account/Register\n2) Account/Login (auto-saves jwt_token)\n3) Account/Find By Username (auto-saves accountId)\n4) Social/* (optional)\n5) Video/Publish (auto-saves videoId)\n6) Like/* (optional)\n7) Feed/* (optional; copy next fields for pagination)\n\nNotes:\n- JWT protected endpoints require Authorization: Bearer {{jwt_token}}.\n- Pagination vars:\n  - /feed/listLatest: response.next_time (unix seconds) -> feedLatestTime\n  - /feed/listLikesCount: response.next_likes_count_before -> feedLikesCountBefore",
+    "description": "All endpoints in one collection.\n\nSuggested run order:\n1) Account/Register\n2) Account/Login (auto-saves jwt_token)\n3) Account/Find By Username (auto-saves accountId)\n4) Social/* (optional)\n5) Video/Publish (auto-saves videoId)\n6) Like/* (optional)\n7) Feed/* (optional; copy next fields for pagination)\n\nNotes:\n- JWT protected endpoints require Authorization: Bearer {{jwt_token}}.\n- Pagination vars:\n  - /feed/listLatest: response.next_time (unix seconds) -> feedLatestTime\n  - /feed/listLikesCount: response.next_likes_count_before/next_id_before -> feedLikesCountBefore/feedLikesIDBefore",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -29,6 +29,7 @@
           "ensure(\"feedLimit\", \"10\");",
           "ensure(\"feedLatestTime\", \"0\");",
           "ensure(\"feedLikesCountBefore\", \"0\");",
+          "ensure(\"feedLikesIDBefore\", \"0\");",
           "ensure(\"commentContent\", `comment_${Date.now()}`);",
           "ensure(\"commentId\", \"1\");"
         ]
@@ -627,11 +628,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
-                "exec": [
+                  "type": "text/javascript",
+                  "exec": [
                   "let json = {};",
                   "try { json = pm.response.json(); } catch (e) {}",
-                  "if (json && typeof json.next_likes_count_before !== \"undefined\") pm.collectionVariables.set(\"feedLikesCountBefore\", String(json.next_likes_count_before));"
+                  "if (json && typeof json.next_likes_count_before !== \"undefined\") pm.collectionVariables.set(\"feedLikesCountBefore\", String(json.next_likes_count_before));",
+                  "if (json && typeof json.next_id_before !== \"undefined\") pm.collectionVariables.set(\"feedLikesIDBefore\", String(json.next_id_before));"
                 ]
               }
             }
@@ -641,7 +643,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"limit\": {{feedLimit}},\n  \"likes_count\": {{feedLikesCountBefore}}\n}"
+              "raw": "{\n  \"limit\": {{feedLimit}},\n  \"likes_count_before\": {{feedLikesCountBefore}},\n  \"id_before\": {{feedLikesIDBefore}}\n}"
             },
             "url": {
               "raw": "{{host}}/feed/listLikesCount",
@@ -668,6 +670,7 @@
     { "key": "feedLimit", "value": "10" },
     { "key": "feedLatestTime", "value": "0" },
     { "key": "feedLikesCountBefore", "value": "0" },
+    { "key": "feedLikesIDBefore", "value": "0" },
     { "key": "commentContent", "value": "" },
     { "key": "commentId", "value": "" }
   ]
