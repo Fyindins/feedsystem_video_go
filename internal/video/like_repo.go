@@ -34,14 +34,3 @@ func (r *LikeRepository) IsLiked(ctx context.Context, videoID, accountID uint) (
 	}
 	return count > 0, nil
 }
-
-func (r *LikeRepository) GetLikesCount(ctx context.Context, videoID uint) (int64, error) {
-	var count int64
-	err := r.db.WithContext(ctx).Model(&Like{}).
-		Where("video_id = ?", videoID).
-		Count(&count).Error
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
-}
