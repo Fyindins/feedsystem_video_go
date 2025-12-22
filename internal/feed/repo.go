@@ -30,13 +30,19 @@ func (repo *FeedRepository) ListLatest(ctx context.Context, limit int, latestBef
 	return videos, nil
 }
 
-func (repo *FeedRepository) ListLikesCount(ctx context.Context, limit int, likesCountBefore int64) ([]video.Video, error) {
+func (repo *FeedRepository) ListLikesCountWithCursor(ctx context.Context, limit int, cursor *LikesCountCursor) ([]video.Video, error) {
 	var videos []video.Video
 	query := repo.db.WithContext(ctx).Model(&video.Video{}).
-		Order("likes_count DESC")
-	if likesCountBefore > 0 {
-		query = query.Where("likes_count < ?", likesCountBefore)
+		Order("likes_count DESC, id DESC")
+
+	if cursor != nil {
+		query = query.Where(
+			"(likes_count < ?) OR (likes_count = ? AND id < ?)",
+			cursor.LikesCount,
+			cursor.LikesCount, cursor.ID,
+		)
 	}
+
 	if err := query.Limit(limit).Find(&videos).Error; err != nil {
 		return nil, err
 	}
