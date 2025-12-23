@@ -1,6 +1,6 @@
 # feedsystem_video_go
 
-基于 Go 的视频 Feed 系统后端，提供账号、视频、点赞、评论、关注（Social）与 Feed 等接口。默认技术栈：`Gin + GORM + MySQL + JWT`。
+基于 Go 的视频 Feed 系统后端，提供账号、视频、点赞、评论、关注（Social）与 Feed 等接口。默认技术栈：`Gin + GORM + MySQL + JWT (+ Redis 可选)`。
 
 仓库内附 Postman Collection（`test/postman.json`），可用于手工/批量调试接口，并包含部分断言脚本。
 
@@ -23,6 +23,8 @@
 
 > 启动时会自动执行 `AutoMigrate`（见 `internal/db/db.go`）。
 
+Redis 为可选依赖：未配置/不可用时服务仍可启动，但不会启用缓存加速。
+
 ## 配置
 配置文件：`configs/config.yaml`
 
@@ -40,18 +42,32 @@ database:
 
 可选环境变量：
 - `JWT_SECRET`：JWT 签名密钥；不设置则使用默认值（仅建议本地调试）。
-- `REDIS_ADDR`：Redis 地址（默认 `127.0.0.1:6379`），用于缓存（连不上会自动降级为不使用缓存）。
+- `REDIS_ADDR`：Redis 地址（默认 `127.0.0.1:6379`），用于缓存/加速（连不上会自动降级为不使用缓存）。
 - `REDIS_PASSWORD`：Redis 密码（可选）。
 - `REDIS_DB`：Redis DB 库号（默认 `0`）。
 
 ## 认证说明（与代码一致）
 - 认证 Header：`Authorization: Bearer <jwt>`
-- 本项目会额外校验：请求 token 必须等于数据库里该账号当前保存的 token（见 `internal/middleware/jwt.go`），因此：
+- 校验流程（见 `internal/middleware/jwt.go`）：
+  - 校验 JWT 签名与过期时间。
+  - 校验该账号“当前有效 token”：优先查 Redis key `account:<accountID>`；Redis 读不到/失败则回退查 DB 的 `account.token`；DB 校验通过会回填 Redis（自愈）。
+- 因此：
   - 同一账号再次登录会覆盖 token（旧 token 立即失效）
   - `/account/logout` 会清空 token（立即失效）
   - `/account/changePassword` 成功后会清空 token（需要重新登录）
   - `/account/rename` 成功后会返回新 token 并写回数据库（旧 token 立即失效）
 - Feed 接口使用“软鉴权”（`SoftJWTAuth`）：可以不带 token；但如果带了 `Authorization`，必须是合法且未撤销的 token，否则返回 `401`。
+
+## Redis 缓存/加速点（可选）
+- 鉴权 token 校验：Redis key `account:<accountID>`（TTL 24h）。
+- Feed 匿名流缓存：`/feed/listLatest`（短 TTL，见 `internal/feed/service.go`）。
+- 视频详情缓存：`/video/getDetail`（见 `internal/video/video_service.go`）。
+
+## 手动自测（推荐）
+1. `POST /account/register` → `POST /account/login` 拿到 `token`。
+2. 带 `Authorization: Bearer <token>` 调用任意 JWT 保护接口（如 `/like/isLiked`）应返回 `200`。
+3. `POST /account/logout` 后，用旧 token 调用保护接口应返回 `401`。
+4. Redis 兜底：停掉 Redis 后再请求保护接口应仍可通过（走 DB）；Redis 恢复后再请求会回填 Redis。
 
 ## Postman 建议测试流程
 使用一体化集合：`test/postman.json`（含预置变量与自动保存脚本）。
@@ -91,7 +107,6 @@ database:
 ### 点赞（`/like`）
 | 路径 | 是否需要 JWT | 说明 |
 |------|-------------|------|
-| `/like/getLikesCount` | 否 | `{"video_id":1}` |
 | `/like/isLiked` | 是 | `{"video_id":1}` |
 | `/like/like` | 是 | `{"video_id":1}` |
 | `/like/unlike` | 是 | `{"video_id":1}` |
@@ -116,7 +131,7 @@ database:
 |------|-------------|------|
 | `/feed/listLatest` | 否（可选 JWT） | `{"limit":10,"latest_time":0}` |
 | `/feed/listLikesCount` | 否（可选 JWT） | `{"limit":10,"likes_count_before":0,"id_before":0}` |
-| `/feed/listByFollowing` | 否（可选 JWT） | `{"limit":10}`（带 token 时按关注作者过滤；不带 token 时为通用流） |
+| `/feed/listByFollowing` | 是 | `{"limit":10}` |
 
 分页说明：
 - `/feed/listLatest`：`latest_time` 为 Unix 秒时间戳；响应 `next_time` 也为 Unix 秒（`0` 表示无下一页）。
