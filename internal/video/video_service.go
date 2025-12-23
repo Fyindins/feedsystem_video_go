@@ -2,15 +2,22 @@ package video
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
+
+	rediscache "feedsystem_video_go/internal/redis"
 )
 
 type VideoService struct {
-	repo *VideoRepository
+	repo     *VideoRepository
+	cache    *rediscache.Client
+	cacheTTL time.Duration
 }
 
-func NewVideoService(repo *VideoRepository) *VideoService {
-	return &VideoService{repo: repo}
+func NewVideoService(repo *VideoRepository, cache *rediscache.Client) *VideoService {
+	return &VideoService{repo: repo, cache: cache, cacheTTL: 5 * time.Minute}
 }
 
 func (vs *VideoService) Publish(ctx context.Context, video *Video) error {
@@ -52,9 +59,31 @@ func (vs *VideoService) ListByAuthorID(ctx context.Context, authorID uint) ([]Vi
 }
 
 func (vs *VideoService) GetDetail(ctx context.Context, id uint) (*Video, error) {
+	if vs.cache != nil {
+		cacheKey := fmt.Sprintf("video:detail:id=%d", id)
+		cacheCtx, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
+		defer cancel()
+
+		if b, err := vs.cache.GetBytes(cacheCtx, cacheKey); err == nil {
+			var cached Video
+			if err := json.Unmarshal(b, &cached); err == nil {
+				return &cached, nil
+			}
+		}
+	}
+
 	video, err := vs.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+
+	if vs.cache != nil {
+		cacheKey := fmt.Sprintf("video:detail:id=%d", id)
+		if b, err := json.Marshal(video); err == nil {
+			cacheCtx, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
+			defer cancel()
+			_ = vs.cache.SetBytes(cacheCtx, cacheKey, b, vs.cacheTTL)
+		}
 	}
 	return video, nil
 }
