@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"feedsystem_video_go/internal/auth"
+	"fmt"
+	"log"
+	"time"
+
+	rediscache "feedsystem_video_go/internal/redis"
 
 	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
@@ -12,6 +17,7 @@ import (
 
 type AccountService struct {
 	accountRepository *AccountRepository
+	cache             *rediscache.Client
 }
 
 var (
@@ -19,8 +25,8 @@ var (
 	ErrNewUsernameRequired = errors.New("new_username is required")
 )
 
-func NewAccountService(accountRepository *AccountRepository) *AccountService {
-	return &AccountService{accountRepository: accountRepository}
+func NewAccountService(accountRepository *AccountRepository, cache *rediscache.Client) *AccountService {
+	return &AccountService{accountRepository: accountRepository, cache: cache}
 }
 
 func (as *AccountService) CreateAccount(ctx context.Context, account *Account) error {
@@ -55,7 +61,14 @@ func (as *AccountService) Rename(ctx context.Context, accountID uint, newUsernam
 		}
 		return "", err
 	}
+	if as.cache != nil {
+		cacheCtx, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
+		defer cancel()
 
+		if err := as.cache.SetBytes(cacheCtx, fmt.Sprintf("account:%d", accountID), []byte(token), 24*time.Hour); err != nil {
+			log.Printf("failed to set cache: %v", err)
+		}
+	}
 	return token, nil
 }
 
@@ -74,7 +87,9 @@ func (as *AccountService) ChangePassword(ctx context.Context, username, oldPassw
 	if err := as.accountRepository.ChangePassword(ctx, account.ID, string(passwordHash)); err != nil {
 		return err
 	}
-	as.Logout(ctx, account.ID)
+	if err := as.Logout(ctx, account.ID); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -110,7 +125,14 @@ func (as *AccountService) Login(ctx context.Context, username, password string) 
 	if err := as.accountRepository.Login(ctx, account.ID, token); err != nil {
 		return "", err
 	}
+	if as.cache != nil {
+		cacheCtx, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
+		defer cancel()
 
+		if err := as.cache.SetBytes(cacheCtx, fmt.Sprintf("account:%d", account.ID), []byte(token), 24*time.Hour); err != nil {
+			log.Printf("failed to set cache: %v", err)
+		}
+	}
 	return token, nil
 }
 
@@ -120,7 +142,15 @@ func (as *AccountService) Logout(ctx context.Context, accountID uint) error {
 		return err
 	}
 	if account.Token == "" {
-		return errors.New("account already logged out")
+		return nil
+	}
+	if as.cache != nil {
+		cacheCtx, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
+		defer cancel()
+
+		if err := as.cache.Del(cacheCtx, fmt.Sprintf("account:%d", account.ID)); err != nil {
+			log.Printf("failed to del cache: %v", err)
+		}
 	}
 	return as.accountRepository.Logout(ctx, account.ID)
 }

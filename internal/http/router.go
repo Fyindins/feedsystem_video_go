@@ -16,7 +16,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	r := gin.Default()
 	// account
 	accountRepository := account.NewAccountRepository(db)
-	accountService := account.NewAccountService(accountRepository)
+	accountService := account.NewAccountService(accountRepository, cache)
 	accountHandler := account.NewAccountHandler(accountService)
 	accountGroup := r.Group("/account")
 	{
@@ -27,7 +27,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 		accountGroup.POST("/findByUsername", accountHandler.FindByUsername)
 	}
 	protectedAccountGroup := accountGroup.Group("")
-	protectedAccountGroup.Use(middleware.JWTAuth(accountRepository))
+	protectedAccountGroup.Use(middleware.JWTAuth(accountRepository, cache))
 	{
 		protectedAccountGroup.POST("/logout", accountHandler.Logout)
 		protectedAccountGroup.POST("/rename", accountHandler.Rename)
@@ -42,7 +42,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 		videoGroup.POST("/getDetail", videoHandler.GetDetail)
 	}
 	protectedVideoGroup := videoGroup.Group("")
-	protectedVideoGroup.Use(middleware.JWTAuth(accountRepository))
+	protectedVideoGroup.Use(middleware.JWTAuth(accountRepository, cache))
 	{
 		protectedVideoGroup.POST("/publish", videoHandler.PublishVideo)
 	}
@@ -52,7 +52,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	likeHandler := video.NewLikeHandler(likeService)
 	likeGroup := r.Group("/like")
 	protectedLikeGroup := likeGroup.Group("")
-	protectedLikeGroup.Use(middleware.JWTAuth(accountRepository))
+	protectedLikeGroup.Use(middleware.JWTAuth(accountRepository, cache))
 	{
 		protectedLikeGroup.POST("/like", likeHandler.Like)
 		protectedLikeGroup.POST("/unlike", likeHandler.Unlike)
@@ -67,7 +67,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 		commentGroup.POST("/listAll", commentHandler.GetAllComments)
 	}
 	protectedCommentGroup := commentGroup.Group("")
-	protectedCommentGroup.Use(middleware.JWTAuth(accountRepository))
+	protectedCommentGroup.Use(middleware.JWTAuth(accountRepository, cache))
 	{
 		protectedCommentGroup.POST("/publish", commentHandler.PublishComment)
 		protectedCommentGroup.POST("/delete", commentHandler.DeleteComment)
@@ -78,7 +78,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	socialHandler := social.NewSocialHandler(socialService)
 	socialGroup := r.Group("/social")
 	protectedSocialGroup := socialGroup.Group("")
-	protectedSocialGroup.Use(middleware.JWTAuth(accountRepository))
+	protectedSocialGroup.Use(middleware.JWTAuth(accountRepository, cache))
 	{
 		protectedSocialGroup.POST("/follow", socialHandler.Follow)
 		protectedSocialGroup.POST("/unfollow", socialHandler.Unfollow)
@@ -90,13 +90,13 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	feedService := feed.NewFeedService(feedRepository, likeRepository, cache)
 	feedHandler := feed.NewFeedHandler(feedService)
 	feedGroup := r.Group("/feed")
-	feedGroup.Use(middleware.SoftJWTAuth(accountRepository))
+	feedGroup.Use(middleware.SoftJWTAuth(accountRepository, cache))
 	{
 		feedGroup.POST("/listLatest", feedHandler.ListLatest)
 		feedGroup.POST("/listLikesCount", feedHandler.ListLikesCount)
 	}
 	protectedFeedGroup := feedGroup.Group("")
-	protectedFeedGroup.Use(middleware.JWTAuth(accountRepository))
+	protectedFeedGroup.Use(middleware.JWTAuth(accountRepository, cache))
 	{
 		protectedFeedGroup.POST("/listByFollowing", feedHandler.ListByFollowing)
 	}
