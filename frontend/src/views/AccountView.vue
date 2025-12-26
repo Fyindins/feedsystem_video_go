@@ -6,6 +6,7 @@ import AppShell from '../components/AppShell.vue'
 import UserAvatar from '../components/UserAvatar.vue'
 import { ApiError } from '../api/client'
 import * as accountApi from '../api/account'
+import * as likeApi from '../api/like'
 import type { Video } from '../api/types'
 import * as videoApi from '../api/video'
 import { useAuthStore } from '../stores/auth'
@@ -30,6 +31,9 @@ const myVideos = reactive({
   error: '',
   items: [] as Video[],
 })
+
+type VideoTab = 'works' | 'likes'
+const videoTab = ref<VideoTab>('works')
 
 let myVideosReq = 0
 async function loadMyVideos() {
@@ -58,8 +62,55 @@ async function loadMyVideos() {
   }
 }
 
+const likedVideos = reactive({
+  loading: false,
+  loaded: false,
+  error: '',
+  items: [] as Video[],
+})
+
+let likedVideosReq = 0
+async function loadLikedVideos() {
+  if (!auth.isLoggedIn || !me.value.id) {
+    likedVideosReq += 1
+    likedVideos.loading = false
+    likedVideos.loaded = false
+    likedVideos.error = ''
+    likedVideos.items = []
+    return
+  }
+  if (likedVideos.loading) return
+
+  const req = ++likedVideosReq
+  likedVideos.loading = true
+  likedVideos.error = ''
+  try {
+    const vids = await likeApi.listMyLikedVideos()
+    if (req !== likedVideosReq) return
+    likedVideos.items = vids
+    likedVideos.loaded = true
+  } catch (e) {
+    if (req !== likedVideosReq) return
+    likedVideos.error = e instanceof ApiError ? e.message : String(e)
+    likedVideos.items = []
+    likedVideos.loaded = true
+  } finally {
+    if (req === likedVideosReq) likedVideos.loading = false
+  }
+}
+
 async function goVideo(id: number) {
   await router.push(`/video/${id}`)
+}
+
+function openWorksVideos() {
+  videoTab.value = 'works'
+  void loadMyVideos()
+}
+
+function openLikedVideos() {
+  videoTab.value = 'likes'
+  void loadLikedVideos()
 }
 
 async function onLogin() {
@@ -135,8 +186,17 @@ watch(
     if (!v) {
       drawer.open = false
       myVideosReq += 1
+      myVideos.loading = false
       myVideos.items = []
       myVideos.error = ''
+
+      likedVideosReq += 1
+      likedVideos.loading = false
+      likedVideos.loaded = false
+      likedVideos.items = []
+      likedVideos.error = ''
+
+      videoTab.value = 'works'
     }
   },
 )
@@ -144,7 +204,10 @@ watch(
 watch(
   () => me.value.id,
   (id) => {
-    if (auth.isLoggedIn && id) void loadMyVideos()
+    if (auth.isLoggedIn && id) {
+      void loadMyVideos()
+      if (videoTab.value === 'likes') void loadLikedVideos()
+    }
   },
   { immediate: true },
 )
@@ -199,33 +262,54 @@ watch(
             <div class="metric-num">{{ social.vloggersLoading ? '…' : social.followingCount }}</div>
             <div class="metric-label">关注</div>
           </button>
-          <div class="metric static">
+          <button class="metric" type="button" :class="{ active: videoTab === 'works' }" @click="openWorksVideos">
             <div class="metric-num">{{ myVideos.loading ? '…' : myVideos.items.length }}</div>
             <div class="metric-label">作品</div>
-          </div>
+          </button>
+          <button class="metric" type="button" :class="{ active: videoTab === 'likes' }" @click="openLikedVideos">
+            <div class="metric-num">{{ likedVideos.loading ? '…' : likedVideos.loaded ? likedVideos.items.length : '—' }}</div>
+            <div class="metric-label">点赞</div>
+          </button>
           <div v-if="socialErrorHint" class="subtle" style="margin-left: 8px">社交信息加载失败：{{ socialErrorHint }}</div>
         </div>
       </div>
 
       <div class="card" style="margin-top: 14px">
         <div class="row" style="justify-content: space-between">
-          <p class="title" style="margin: 0">作品</p>
+          <p class="title" style="margin: 0">{{ videoTab === 'works' ? '作品' : '点赞视频' }}</p>
           <div class="subtle">点击封面进入播放页</div>
         </div>
 
-        <div v-if="myVideos.loading" class="hint" style="margin-top: 12px">加载中…</div>
-        <div v-else-if="myVideos.error" class="hint bad" style="margin-top: 12px">{{ myVideos.error }}</div>
-        <div v-else-if="myVideos.items.length === 0" class="hint" style="margin-top: 12px">暂无作品</div>
+        <template v-if="videoTab === 'works'">
+          <div v-if="myVideos.loading" class="hint" style="margin-top: 12px">加载中…</div>
+          <div v-else-if="myVideos.error" class="hint bad" style="margin-top: 12px">{{ myVideos.error }}</div>
+          <div v-else-if="myVideos.items.length === 0" class="hint" style="margin-top: 12px">暂无作品</div>
 
-        <div v-else class="video-grid" style="margin-top: 12px">
-          <button v-for="v in myVideos.items" :key="v.id" class="video-card" type="button" @click="goVideo(v.id)">
-            <img class="video-cover" :src="v.cover_url" :alt="v.title" loading="lazy" />
-            <div class="video-meta">
-              <div class="video-title">{{ v.title }}</div>
-              <div class="video-sub subtle">❤️ {{ v.likes_count }} · {{ new Date(v.create_time).toLocaleDateString() }}</div>
-            </div>
-          </button>
-        </div>
+          <div v-else class="video-grid" style="margin-top: 12px">
+            <button v-for="v in myVideos.items" :key="v.id" class="video-card" type="button" @click="goVideo(v.id)">
+              <img class="video-cover" :src="v.cover_url" :alt="v.title" loading="lazy" />
+              <div class="video-meta">
+                <div class="video-title">{{ v.title }}</div>
+                <div class="video-sub subtle">❤️ {{ v.likes_count }} · {{ new Date(v.create_time).toLocaleDateString() }}</div>
+              </div>
+            </button>
+          </div>
+        </template>
+        <template v-else>
+          <div v-if="likedVideos.loading" class="hint" style="margin-top: 12px">加载中…</div>
+          <div v-else-if="likedVideos.error" class="hint bad" style="margin-top: 12px">{{ likedVideos.error }}</div>
+          <div v-else-if="likedVideos.items.length === 0" class="hint" style="margin-top: 12px">暂无点赞视频</div>
+
+          <div v-else class="video-grid" style="margin-top: 12px">
+            <button v-for="v in likedVideos.items" :key="v.id" class="video-card" type="button" @click="goVideo(v.id)">
+              <img class="video-cover" :src="v.cover_url" :alt="v.title" loading="lazy" />
+              <div class="video-meta">
+                <div class="video-title">{{ v.title }}</div>
+                <div class="video-sub subtle">❤️ {{ v.likes_count }} · {{ new Date(v.create_time).toLocaleDateString() }}</div>
+              </div>
+            </button>
+          </div>
+        </template>
       </div>
     </template>
 
@@ -292,6 +376,11 @@ watch(
 
 .metric:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.metric.active {
+  background: rgba(254, 44, 85, 0.14);
+  border-color: rgba(254, 44, 85, 0.55);
 }
 
 .metric.static {

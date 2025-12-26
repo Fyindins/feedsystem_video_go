@@ -7,7 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        // Force IPv4 to avoid Windows resolving `localhost` -> `::1` (IPv6) and causing ECONNREFUSED
+        target: 'http://127.0.0.1:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
