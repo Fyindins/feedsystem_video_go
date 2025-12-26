@@ -64,3 +64,7 @@ func (s *LikeService) Unlike(ctx context.Context, like *Like) error {
 func (s *LikeService) IsLiked(ctx context.Context, videoID, accountID uint) (bool, error) {
 	return s.repo.IsLiked(ctx, videoID, accountID)
 }
+
+func (s *LikeService) ListLikedVideos(ctx context.Context, accountID uint) ([]Video, error) {
+	return s.repo.ListLikedVideos(ctx, accountID)
+}

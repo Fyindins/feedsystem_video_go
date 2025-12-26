@@ -89,3 +89,18 @@ func (lh *LikeHandler) IsLiked(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"is_liked": isLiked})
 }
+
+func (lh *LikeHandler) ListMyLikedVideos(c *gin.Context) {
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	videos, err := lh.service.ListLikedVideos(c.Request.Context(), accountID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, videos)
+}

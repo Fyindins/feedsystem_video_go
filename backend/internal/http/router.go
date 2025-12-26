@@ -14,6 +14,7 @@ import (
 
 func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	r := gin.Default()
+	r.Static("/static", "./.run/uploads")
 	// account
 	accountRepository := account.NewAccountRepository(db)
 	accountService := account.NewAccountService(accountRepository, cache)
@@ -44,6 +45,8 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	protectedVideoGroup := videoGroup.Group("")
 	protectedVideoGroup.Use(middleware.JWTAuth(accountRepository, cache))
 	{
+		protectedVideoGroup.POST("/uploadVideo", videoHandler.UploadVideo)
+		protectedVideoGroup.POST("/uploadCover", videoHandler.UploadCover)
 		protectedVideoGroup.POST("/publish", videoHandler.PublishVideo)
 	}
 	// like
@@ -57,6 +60,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 		protectedLikeGroup.POST("/like", likeHandler.Like)
 		protectedLikeGroup.POST("/unlike", likeHandler.Unlike)
 		protectedLikeGroup.POST("/isLiked", likeHandler.IsLiked)
+		protectedLikeGroup.POST("/listMyLikedVideos", likeHandler.ListMyLikedVideos)
 	}
 	// comment
 	commentRepository := video.NewCommentRepository(db)

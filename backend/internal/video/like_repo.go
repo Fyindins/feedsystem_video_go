@@ -54,3 +54,20 @@ func (r *LikeRepository) BatchGetLiked(ctx context.Context, videoIDs []uint, acc
 	}
 	return likeMap, nil
 }
+
+func (r *LikeRepository) ListLikedVideos(ctx context.Context, accountID uint) ([]Video, error) {
+	var videos []Video
+	if accountID == 0 {
+		return videos, nil
+	}
+	err := r.db.WithContext(ctx).
+		Model(&Video{}).
+		Joins("JOIN likes ON likes.video_id = videos.id").
+		Where("likes.account_id = ?", accountID).
+		Order("likes.created_at desc").
+		Find(&videos).Error
+	if err != nil {
+		return nil, err
+	}
+	return videos, nil
+}
