@@ -52,7 +52,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	// like
 	likeRepository := video.NewLikeRepository(db)
 	likeService := video.NewLikeService(likeRepository, videoRepository)
-	likeHandler := video.NewLikeHandler(likeService)
+	likeHandler := video.NewLikeHandler(likeService, videoService)
 	likeGroup := r.Group("/like")
 	protectedLikeGroup := likeGroup.Group("")
 	protectedLikeGroup.Use(middleware.JWTAuth(accountRepository, cache))
@@ -65,7 +65,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	// comment
 	commentRepository := video.NewCommentRepository(db)
 	commentService := video.NewCommentService(commentRepository, videoRepository)
-	commentHandler := video.NewCommentHandler(commentService, accountService)
+	commentHandler := video.NewCommentHandler(commentService, accountService, videoService)
 	commentGroup := r.Group("/comment")
 	{
 		commentGroup.POST("/listAll", commentHandler.GetAllComments)
@@ -98,6 +98,7 @@ func SetRouter(db *gorm.DB, cache *rediscache.Client) *gin.Engine {
 	{
 		feedGroup.POST("/listLatest", feedHandler.ListLatest)
 		feedGroup.POST("/listLikesCount", feedHandler.ListLikesCount)
+		feedGroup.POST("/listByPopularity", feedHandler.ListByPopularity)
 	}
 	protectedFeedGroup := feedGroup.Group("")
 	protectedFeedGroup.Use(middleware.JWTAuth(accountRepository, cache))

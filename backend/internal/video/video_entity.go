@@ -12,6 +12,7 @@ type Video struct {
 	CoverURL    string    `gorm:"type:varchar(255);not null" json:"cover_url"`
 	CreateTime  time.Time `gorm:"autoCreateTime" json:"create_time"`
 	LikesCount  int64     `gorm:"column:likes_count;not null;default:0" json:"likes_count"`
+	Popularity  int64     `gorm:"column:popularity;not null;default:0" json:"popularity"`
 }
 
 type PublishVideoRequest struct {

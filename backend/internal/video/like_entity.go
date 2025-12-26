@@ -12,7 +12,3 @@ type Like struct {
 type LikeRequest struct {
 	VideoID uint `json:"video_id"`
 }
-
-type LikeHandler struct {
-	service *LikeService
-}

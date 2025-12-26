@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -163,6 +164,29 @@ func (vs *VideoService) GetDetail(ctx context.Context, id uint) (*Video, error) 
 func (vs *VideoService) UpdateLikesCount(ctx context.Context, id uint, likesCount int64) error {
 	if err := vs.repo.UpdateLikesCount(ctx, id, likesCount); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (vs *VideoService) UpdatePopularity(ctx context.Context, id uint, change int64) error {
+	if err := vs.repo.UpdatePopularity(ctx, id, change); err != nil {
+		return err
+	}
+
+	if vs.cache != nil {
+		// 1) 详情缓存：直接失效（最简单靠谱）
+		_ = vs.cache.Del(context.Background(), fmt.Sprintf("video:detail:id=%d", id))
+
+		// 2) 热榜：写到“时间窗ZSET”，不要用 detail key
+		now := time.Now().UTC().Truncate(time.Minute)
+		windowKey := "hot:video:1m:" + now.Format("200601021504")
+		member := strconv.FormatUint(uint64(id), 10)
+
+		opCtx, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
+		defer cancel()
+
+		_ = vs.cache.ZincrBy(opCtx, windowKey, member, float64(change))
+		_ = vs.cache.Expire(opCtx, windowKey, 2*time.Hour)
 	}
 	return nil
 }

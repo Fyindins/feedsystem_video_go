@@ -112,3 +112,53 @@ func (f *FeedHandler) ListByFollowing(c *gin.Context) {
 	}
 	c.JSON(200, feedItems)
 }
+
+func (f *FeedHandler) ListByPopularity(c *gin.Context) {
+	var req ListByPopularityRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if req.Limit <= 0 || req.Limit > 50 {
+		req.Limit = 10
+	}
+	viewerAccountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		viewerAccountID = 0
+	}
+
+	var latestPopularity int64
+	var latestBefore time.Time
+	var latestIDBefore uint
+
+	if req.LatestPopularity < 0 {
+		c.JSON(400, gin.H{"error": "latest_popularity must be >= 0"})
+		return
+	}
+
+	anyCursor := !req.LatestBefore.IsZero() || req.LatestIDBefore != nil
+	if anyCursor {
+		if req.LatestBefore.IsZero() || req.LatestIDBefore == nil || *req.LatestIDBefore == 0 {
+			c.JSON(400, gin.H{"error": "latest_before and latest_id_before must be provided together"})
+			return
+		}
+		latestPopularity = req.LatestPopularity
+		latestBefore = req.LatestBefore
+		latestIDBefore = *req.LatestIDBefore
+	}
+	resp, err := f.service.ListByPopularity(
+		c.Request.Context(),
+		req.Limit,
+		req.AsOf,
+		req.Offset,
+		viewerAccountID,
+		latestPopularity,
+		latestBefore,
+		latestIDBefore,
+	)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, resp)
+}
