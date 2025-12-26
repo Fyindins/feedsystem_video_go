@@ -1,5 +1,5 @@
 import { postJson } from './client'
-import type { ListByFollowingResponse, ListLatestResponse, ListLikesCountResponse } from './types'
+import type { ListByFollowingResponse, ListByPopularityResponse, ListLatestResponse, ListLikesCountResponse } from './types'
 
 export function listLatest(input: { limit: number; latest_time: number }) {
   return postJson<ListLatestResponse>('/feed/listLatest', input)
@@ -12,6 +12,10 @@ export function listLikesCount(input: { limit: number; likes_count_before?: numb
     body.id_before = input.id_before ?? 0
   }
   return postJson<ListLikesCountResponse>('/feed/listLikesCount', body)
+}
+
+export function listByPopularity(input: { limit: number; as_of: number; offset: number }) {
+  return postJson<ListByPopularityResponse>('/feed/listByPopularity', input)
 }
 
 export function listByFollowing(input: { limit: number; latest_time: number }) {

@@ -441,7 +441,7 @@ onBeforeUnmount(() => {
       <div class="tabs">
         <button class="tab" :class="{ on: tab === 'recommend' }" type="button" @click="tab = 'recommend'">推荐</button>
         <button class="tab" :class="{ on: tab === 'following' }" type="button" @click="tab = 'following'">关注</button>
-        <button class="tab" :class="{ on: tab === 'hot' }" type="button" @click="tab = 'hot'">热榜</button>
+        <button class="tab" :class="{ on: tab === 'hot' }" type="button" @click="tab = 'hot'">点赞榜</button>
 
         <div class="tabs-right">
           <button class="chip" type="button" @click="toggleMute">{{ muted ? '静音' : '有声' }}</button>

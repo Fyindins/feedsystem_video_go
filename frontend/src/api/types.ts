@@ -58,6 +58,16 @@ export type ListLikesCountResponse = {
   has_more: boolean
 }
 
+export type ListByPopularityResponse = {
+  video_list: FeedVideoItem[]
+  as_of: number
+  next_offset: number
+  has_more: boolean
+  next_latest_popularity?: number
+  next_latest_before?: string
+  next_latest_id_before?: number
+}
+
 export type ListByFollowingResponse = {
   video_list: FeedVideoItem[]
   next_time: number
