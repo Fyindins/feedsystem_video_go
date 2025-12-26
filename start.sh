@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 cd "$ROOT_DIR"
@@ -39,10 +39,26 @@ require_cmd() {
 }
 
 BACKEND_PID=""
+FRONTEND_PID=""
 cleanup() {
+  set +e
+  if [ -n "${FRONTEND_PID:-}" ]; then
+    echo "[start.sh] Stopping frontend (pid=$FRONTEND_PID)"
+    kill "$FRONTEND_PID" >/dev/null 2>&1 || true
+  fi
   if [ -n "${BACKEND_PID:-}" ]; then
     echo "[start.sh] Stopping backend (pid=$BACKEND_PID)"
     kill "$BACKEND_PID" >/dev/null 2>&1 || true
+  fi
+  # On Windows Git Bash, child processes sometimes don't receive signals reliably.
+  # Fall back to taskkill when available.
+  if command -v taskkill >/dev/null 2>&1; then
+    if [ -n "${FRONTEND_PID:-}" ]; then
+      taskkill //PID "$FRONTEND_PID" //T //F >/dev/null 2>&1 || true
+    fi
+    if [ -n "${BACKEND_PID:-}" ]; then
+      taskkill //PID "$BACKEND_PID" //T //F >/dev/null 2>&1 || true
+    fi
   fi
 }
 trap cleanup INT TERM EXIT
@@ -55,6 +71,7 @@ fi
 
 if [ "$START_FRONTEND" = "1" ]; then
   require_dir frontend "$FRONTEND_DIR"
+  mkdir -p "$RUN_DIR"
   require_cmd npm
 fi
 
@@ -88,34 +105,34 @@ start_backend_bg() {
   echo "[start.sh] Backend PID: $BACKEND_PID"
 }
 
-start_backend_fg() {
-  echo "[start.sh] Starting backend"
-  cd "$BACKEND_DIR"
-  go run ./cmd
-}
-
-start_frontend_fg() {
+start_frontend_bg() {
   if [ "$FRONTEND_INSTALL" = "1" ] || { [ "$FRONTEND_INSTALL" = "auto" ] && [ ! -d "$FRONTEND_DIR/node_modules" ]; }; then
     echo "[start.sh] Installing frontend deps"
     (cd "$FRONTEND_DIR" && npm install)
   fi
 
-  echo "[start.sh] Starting frontend (npm run $FRONTEND_SCRIPT)"
-  cd "$FRONTEND_DIR"
-  npm run "$FRONTEND_SCRIPT"
+  echo "[start.sh] Starting frontend (background, npm run $FRONTEND_SCRIPT)"
+  (cd "$FRONTEND_DIR" && npm run "$FRONTEND_SCRIPT") &
+  FRONTEND_PID=$!
+  echo "$FRONTEND_PID" >"$RUN_DIR/frontend.pid"
+  echo "[start.sh] Frontend PID: $FRONTEND_PID"
 }
 
 if [ "$START_REDIS" = "1" ] && [ "$START_BACKEND" = "1" ]; then
   start_redis
 fi
 
-if [ "$START_BACKEND" = "1" ] && [ "$START_FRONTEND" = "1" ]; then
+if [ "$START_BACKEND" = "1" ]; then
   start_backend_bg
-  start_frontend_fg
-elif [ "$START_BACKEND" = "1" ]; then
-  start_backend_fg
-elif [ "$START_FRONTEND" = "1" ]; then
-  start_frontend_fg
+fi
+
+if [ "$START_FRONTEND" = "1" ]; then
+  start_frontend_bg
+fi
+
+if [ "$START_BACKEND" = "1" ] || [ "$START_FRONTEND" = "1" ]; then
+  echo "[start.sh] Press Ctrl+C to stop."
+  wait
 else
   echo "[start.sh] Nothing to start. Set START_BACKEND=1 and/or START_FRONTEND=1."
 fi
