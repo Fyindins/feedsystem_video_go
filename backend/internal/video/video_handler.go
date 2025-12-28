@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"feedsystem_video_go/internal/account"
-	"feedsystem_video_go/internal/middleware"
+	"feedsystem_video_go/internal/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,7 +33,7 @@ func (vh *VideoHandler) PublishVideo(c *gin.Context) {
 		return
 	}
 
-	authorId, err := middleware.GetAccountID(c)
+	authorId, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -60,7 +60,7 @@ func (vh *VideoHandler) PublishVideo(c *gin.Context) {
 }
 
 func (vh *VideoHandler) UploadVideo(c *gin.Context) {
-	authorId, err := middleware.GetAccountID(c)
+	authorId, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -110,7 +110,7 @@ func (vh *VideoHandler) UploadVideo(c *gin.Context) {
 }
 
 func (vh *VideoHandler) UploadCover(c *gin.Context) {
-	authorId, err := middleware.GetAccountID(c)
+	authorId, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -184,7 +184,7 @@ func (vh *VideoHandler) DeleteVideo(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	authorId, err := middleware.GetAccountID(c)
+	authorId, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return

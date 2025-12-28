@@ -1,7 +1,7 @@
 package video
 
 import (
-	"feedsystem_video_go/internal/middleware"
+	"feedsystem_video_go/internal/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +26,7 @@ func (lh *LikeHandler) Like(c *gin.Context) {
 		return
 	}
 
-	accountID, err := middleware.GetAccountID(c)
+	accountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -58,7 +58,7 @@ func (lh *LikeHandler) Unlike(c *gin.Context) {
 		return
 	}
 
-	accountID, err := middleware.GetAccountID(c)
+	accountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -90,7 +90,7 @@ func (lh *LikeHandler) IsLiked(c *gin.Context) {
 		return
 	}
 
-	accountID, err := middleware.GetAccountID(c)
+	accountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -104,7 +104,7 @@ func (lh *LikeHandler) IsLiked(c *gin.Context) {
 }
 
 func (lh *LikeHandler) ListMyLikedVideos(c *gin.Context) {
-	accountID, err := middleware.GetAccountID(c)
+	accountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return

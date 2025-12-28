@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	rediscache "feedsystem_video_go/internal/redis"
+	rediscache "feedsystem_video_go/internal/middleware/redis"
 )
 
 type VideoService struct {

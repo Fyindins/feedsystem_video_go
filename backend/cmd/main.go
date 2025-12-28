@@ -5,7 +5,7 @@ import (
 	"feedsystem_video_go/internal/config"
 	"feedsystem_video_go/internal/db"
 	apphttp "feedsystem_video_go/internal/http"
-	rediscache "feedsystem_video_go/internal/redis"
+	rediscache "feedsystem_video_go/internal/middleware/redis"
 	"log"
 	"strconv"
 	"time"

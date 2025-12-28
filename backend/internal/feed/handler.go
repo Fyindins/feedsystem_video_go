@@ -1,7 +1,7 @@
 package feed
 
 import (
-	"feedsystem_video_go/internal/middleware"
+	"feedsystem_video_go/internal/middleware/jwt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ func (f *FeedHandler) ListLatest(c *gin.Context) {
 	if req.LatestTime > 0 {
 		latestTime = time.Unix(req.LatestTime, 0)
 	}
-	viewerAccountID, err := middleware.GetAccountID(c)
+	viewerAccountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		viewerAccountID = 0
 	}
@@ -76,7 +76,7 @@ func (f *FeedHandler) ListLikesCount(c *gin.Context) {
 			}
 		}
 	}
-	viewerAccountID, err := middleware.GetAccountID(c)
+	viewerAccountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		viewerAccountID = 0
 	}
@@ -97,7 +97,7 @@ func (f *FeedHandler) ListByFollowing(c *gin.Context) {
 	if req.Limit <= 0 || req.Limit > 50 {
 		req.Limit = 10
 	}
-	viewerAccountID, err := middleware.GetAccountID(c)
+	viewerAccountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		viewerAccountID = 0
 	}
@@ -122,7 +122,7 @@ func (f *FeedHandler) ListByPopularity(c *gin.Context) {
 	if req.Limit <= 0 || req.Limit > 50 {
 		req.Limit = 10
 	}
-	viewerAccountID, err := middleware.GetAccountID(c)
+	viewerAccountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		viewerAccountID = 0
 	}

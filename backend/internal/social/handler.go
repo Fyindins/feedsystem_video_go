@@ -1,7 +1,7 @@
 package social
 
 import (
-	"feedsystem_video_go/internal/middleware"
+	"feedsystem_video_go/internal/middleware/jwt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +25,7 @@ func (h *SocialHandler) Follow(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "vlogger_id is required"})
 		return
 	}
-	FollowerID, err := middleware.GetAccountID(c)
+	FollowerID, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -51,7 +51,7 @@ func (h *SocialHandler) Unfollow(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "vlogger_id is required"})
 		return
 	}
-	FollowerID, err := middleware.GetAccountID(c)
+	FollowerID, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -76,7 +76,7 @@ func (h *SocialHandler) GetAllFollowers(c *gin.Context) {
 
 	vloggerID := req.VloggerID
 	if vloggerID == 0 {
-		accountID, err := middleware.GetAccountID(c)
+		accountID, err := jwt.GetAccountID(c)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
@@ -101,7 +101,7 @@ func (h *SocialHandler) GetAllVloggers(c *gin.Context) {
 
 	followerID := req.FollowerID
 	if followerID == 0 {
-		accountID, err := middleware.GetAccountID(c)
+		accountID, err := jwt.GetAccountID(c)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return

@@ -1,5 +1,4 @@
-// internal/middleware/jwt.go
-package middleware
+package jwt
 
 import (
 	"context"
@@ -12,7 +11,7 @@ import (
 
 	"feedsystem_video_go/internal/account"
 	"feedsystem_video_go/internal/auth"
-	rediscache "feedsystem_video_go/internal/redis"
+	rediscache "feedsystem_video_go/internal/middleware/redis"
 
 	"github.com/gin-gonic/gin"
 )

@@ -3,7 +3,7 @@ package feed
 import (
 	"context"
 	"encoding/json"
-	rediscache "feedsystem_video_go/internal/redis"
+	rediscache "feedsystem_video_go/internal/middleware/redis"
 	"feedsystem_video_go/internal/video"
 	"fmt"
 	"strconv"

@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	rediscache "feedsystem_video_go/internal/redis"
+	rediscache "feedsystem_video_go/internal/middleware/redis"
 
 	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"

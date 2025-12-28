@@ -2,7 +2,7 @@ package video
 
 import (
 	"feedsystem_video_go/internal/account"
-	"feedsystem_video_go/internal/middleware"
+	"feedsystem_video_go/internal/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +30,7 @@ func (h *CommentHandler) PublishComment(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "video_id is required"})
 		return
 	}
-	authorId, err := middleware.GetAccountID(c)
+	authorId, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -63,7 +63,7 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	accountID, err := middleware.GetAccountID(c)
+	accountID, err := jwt.GetAccountID(c)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
