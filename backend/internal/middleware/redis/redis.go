@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"os"
+	"feedsystem_video_go/internal/config"
 	"strconv"
 	"time"
 
@@ -15,25 +15,11 @@ type Client struct {
 	rdb *redis.Client
 }
 
-func NewFromEnv() (*Client, error) {
-	addr := os.Getenv("REDIS_ADDR")
-	if addr == "" {
-		addr = "127.0.0.1:6379"
-	}
-
-	db := 0
-	if v := os.Getenv("REDIS_DB"); v != "" {
-		n, err := strconv.Atoi(v)
-		if err != nil {
-			return nil, err
-		}
-		db = n
-	}
-
+func NewFromEnv(cfg *config.RedisConfig) (*Client, error) {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       db,
+		Addr:     cfg.Host + ":" + strconv.Itoa(cfg.Port),
+		Password: cfg.Password,
+		DB:       cfg.DB,
 	})
 	return &Client{rdb: rdb}, nil
 }
@@ -50,18 +36,6 @@ func (c *Client) Ping(ctx context.Context) error {
 		return nil
 	}
 	return c.rdb.Ping(ctx).Err()
-}
-
-func (c *Client) GetBytes(ctx context.Context, key string) ([]byte, error) {
-	return c.rdb.Get(ctx, key).Bytes()
-}
-
-func (c *Client) SetBytes(ctx context.Context, key string, value []byte, ttl time.Duration) error {
-	return c.rdb.Set(ctx, key, value, ttl).Err()
-}
-
-func (c *Client) Del(ctx context.Context, key string) error {
-	return c.rdb.Del(ctx, key).Err()
 }
 
 func IsMiss(err error) bool {
@@ -102,55 +76,4 @@ func (c *Client) Unlock(ctx context.Context, key string, token string) error {
 	}
 	_, err := unlockScript.Run(ctx, c.rdb, []string{key}, token).Result()
 	return err
-}
-
-func (c *Client) ZincrBy(ctx context.Context, key string, member string, score float64) error {
-	if c == nil || c.rdb == nil {
-		return nil
-	}
-	return c.rdb.ZIncrBy(ctx, key, score, member).Err()
-}
-
-func (c *Client) Expire(ctx context.Context, key string, ttl time.Duration) error {
-	if c == nil || c.rdb == nil {
-		return nil
-	}
-	return c.rdb.Expire(ctx, key, ttl).Err()
-}
-
-func (c *Client) ZUnionStore(ctx context.Context, dst string, keys []string, aggregate string) error {
-	if c == nil || c.rdb == nil {
-		return nil
-	}
-	return c.rdb.ZUnionStore(ctx, dst, &redis.ZStore{
-		Keys:      keys,
-		Aggregate: aggregate,
-	}).Err()
-}
-
-func (c *Client) Exists(ctx context.Context, key string) (bool, error) {
-	if c == nil || c.rdb == nil {
-		return false, nil
-	}
-	n, err := c.rdb.Exists(ctx, key).Result()
-	return n > 0, err
-}
-
-func (c *Client) ZRevRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
-	if c == nil || c.rdb == nil {
-		return nil, nil
-	}
-	return c.rdb.ZRevRange(ctx, key, start, stop).Result()
-}
-
-func (c *Client) ZRevRangeByScore(ctx context.Context, key string, max, min string, offset, count int64) ([]string, error) {
-	if c == nil || c.rdb == nil {
-		return nil, nil
-	}
-	return c.rdb.ZRevRangeByScore(ctx, key, &redis.ZRangeBy{
-		Max:    max,
-		Min:    min,
-		Offset: offset,
-		Count:  count,
-	}).Result()
 }
