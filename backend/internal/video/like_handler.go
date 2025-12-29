@@ -7,12 +7,11 @@ import (
 )
 
 type LikeHandler struct {
-	service      *LikeService
-	videoService *VideoService
+	service *LikeService
 }
 
-func NewLikeHandler(service *LikeService, videoService *VideoService) *LikeHandler {
-	return &LikeHandler{service: service, videoService: videoService}
+func NewLikeHandler(service *LikeService) *LikeHandler {
+	return &LikeHandler{service: service}
 }
 
 func (lh *LikeHandler) Like(c *gin.Context) {
@@ -37,10 +36,6 @@ func (lh *LikeHandler) Like(c *gin.Context) {
 		AccountID: accountID,
 	}
 	if err := lh.service.Like(c.Request.Context(), like); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-	if err := lh.videoService.UpdatePopularity(c.Request.Context(), req.VideoID, 1); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -69,10 +64,6 @@ func (lh *LikeHandler) Unlike(c *gin.Context) {
 		AccountID: accountID,
 	}
 	if err := lh.service.Unlike(c.Request.Context(), like); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-	if err := lh.videoService.UpdatePopularity(c.Request.Context(), req.VideoID, -1); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
