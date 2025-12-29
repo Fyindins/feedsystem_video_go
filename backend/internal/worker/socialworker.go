@@ -59,7 +59,7 @@ func (w *SocialWorker) Run(ctx context.Context) error {
 func (w *SocialWorker) handleDelivery(ctx context.Context, d amqp.Delivery) {
 	if err := w.process(ctx, d.Body); err != nil {
 		log.Printf("social worker: failed to process message: %v", err)
-		// Retry on DB/transient errors.
+		// 重新入队，稍后重试
 		_ = d.Nack(false, true)
 		return
 	}
@@ -69,7 +69,7 @@ func (w *SocialWorker) handleDelivery(ctx context.Context, d amqp.Delivery) {
 func (w *SocialWorker) process(ctx context.Context, body []byte) error {
 	var evt rabbitmq.SocialEvent
 	if err := json.Unmarshal(body, &evt); err != nil {
-		// Poison message: drop it to avoid infinite retry loop.
+		// 解析事件失败，直接丢弃
 		return nil
 	}
 	if evt.FollowerID == 0 || evt.VloggerID == 0 {
