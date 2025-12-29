@@ -10,11 +10,10 @@ import (
 type CommentHandler struct {
 	service        *CommentService
 	accountService *account.AccountService
-	videoService   *VideoService
 }
 
-func NewCommentHandler(service *CommentService, accountService *account.AccountService, videoService *VideoService) *CommentHandler {
-	return &CommentHandler{service: service, accountService: accountService, videoService: videoService}
+func NewCommentHandler(service *CommentService, accountService *account.AccountService) *CommentHandler {
+	return &CommentHandler{service: service, accountService: accountService}
 }
 func (h *CommentHandler) PublishComment(c *gin.Context) {
 	var req PublishCommentRequest
@@ -48,10 +47,6 @@ func (h *CommentHandler) PublishComment(c *gin.Context) {
 	}
 	if err := h.service.Publish(c.Request.Context(), comment); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-	if err := h.videoService.UpdatePopularity(c.Request.Context(), req.VideoID, 1); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(200, gin.H{"message": "comment published successfully"})
